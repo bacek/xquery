@@ -7,7 +7,7 @@ grammar XQuery::Parser::Grammar {
     rule  Module  { <VersionDecl>? [ <MainModule> ] };
 
 #[2]    	VersionDecl 	   ::=    	"xquery" "version" StringLiteral ("encoding" StringLiteral)? Separator
-    rule  VersionDecl    { 'xquery' 'version' <StringLiteral> [ 'encoding' <StringLiteral> ]? };
+    rule  VersionDecl    { 'xquery' 'version' <StringLiteral> [ 'encoding' <StringLiteral> ]? ';' };
 
 #[3]    	MainModule 	   ::=    	Prolog QueryBody
 #rule  MainModule     { <Prolog> <QueryBody> };
@@ -17,6 +17,25 @@ grammar XQuery::Parser::Grammar {
 ##[4]    	LibraryModule 	   ::=    	ModuleDecl Prolog
 ##[5]    	ModuleDecl 	   ::=    	"module" "namespace" NCName "=" URILiteral Separator
 ##[6]    	Prolog 	   ::=    	((DefaultNamespaceDecl | Setter | NamespaceDecl | Import) Separator)* ((VarDecl | FunctionDecl | OptionDecl) Separator)*
+    rule Prolog {
+        [
+            [ 
+                | <DefaultNamespaceDecl> 
+                | <Setter> 
+                | <NamespaceDecl> 
+                | <Import> 
+            ] 
+            ';'
+        ]* 
+        [
+            [ 
+                | <VarDecl> 
+                | <FunctionDecl> 
+                | <OptionDecl> 
+            ] 
+            ';'
+        ]*
+    };
 ##[7]    	Setter 	   ::=    	BoundarySpaceDecl | DefaultCollationDecl | BaseURIDecl | ConstructionDecl | OrderingModeDecl | EmptyOrderDecl | CopyNamespacesDecl
 ##[8]    	Import 	   ::=    	SchemaImport | ModuleImport
 ##[9]    	Separator 	   ::=    	";"
@@ -198,7 +217,7 @@ grammar XQuery::Parser::Grammar {
 
     token Literal        { <NumericLiteral> | <StringLiteral> };
 
-    token NumericLiteral { <IntegerLiteral> | <DecimalLiteral> | <DoubleLiteral> };
+    token NumericLiteral { <DoubleLiteral> | <DecimalLiteral> | <IntegerLiteral> };
 
     token IntegerLiteral { \d+ };
     token DecimalLiteral { '.' \d+ | \d+ '.' \d* };
