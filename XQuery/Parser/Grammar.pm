@@ -11,7 +11,7 @@ grammar XQuery::Parser::Grammar {
 
 #[3]    	MainModule 	   ::=    	Prolog QueryBody
 #rule  MainModule     { <Prolog> <QueryBody> };
-    rule  MainModule     { <Prolog> <Literal> };
+    rule  MainModule     { <Prolog> <QueryBody> };
 
 
 ##[4]    	LibraryModule 	   ::=    	ModuleDecl Prolog
@@ -56,7 +56,7 @@ grammar XQuery::Parser::Grammar {
 
 ##[24]    	VarDecl 	   ::=    	"declare" "variable" "$" QName TypeDeclaration? ((":=" ExprSingle) | "external")
     rule VarDecl {
-        'declare' 'variable' '$' <!ws> <QName> [ 'external' ]?
+        'declare' 'variable' '$' <QName> [ 'external' ]?
     };
 
 ##[25]    	ConstructionDecl 	   ::=    	"declare" "construction" ("strip" | "preserve")
@@ -65,12 +65,18 @@ grammar XQuery::Parser::Grammar {
 ##[28]    	Param 	   ::=    	"$" QName TypeDeclaration?
 ##[29]    	EnclosedExpr 	   ::=    	"{" Expr "}"
 ##[30]    	QueryBody 	   ::=    	Expr
+    rule QueryBody { <Expr> };
+
 ##[31]    	Expr 	   ::=    	ExprSingle ("," ExprSingle)*
+    rule Expr      { <ExprSingle> [ ',' <ExprSingle> ]* };
+
 ##[32]    	ExprSingle 	   ::=    	FLWORExpr
 ##| QuantifiedExpr
 ##| TypeswitchExpr
 ##| IfExpr
 ##| OrExpr
+    rule ExprSingle { <OrExpr> };
+
 ##[33]    	FLWORExpr 	   ::=    	(ForClause | LetClause)+ WhereClause? OrderByClause? "return" ExprSingle
 ##[34]    	ForClause 	   ::=    	"for" "$" VarName TypeDeclaration? PositionalVar? "in" ExprSingle ("," "$" VarName TypeDeclaration? PositionalVar? "in" ExprSingle)*
 ##[35]    	PositionalVar 	   ::=    	"at" "$" VarName
@@ -85,24 +91,56 @@ grammar XQuery::Parser::Grammar {
 ##[44]    	CaseClause 	   ::=    	"case" ("$" VarName "as")? SequenceType "return" ExprSingle
 ##[45]    	IfExpr 	   ::=    	"if" "(" Expr ")" "then" ExprSingle "else" ExprSingle
 ##[46]    	OrExpr 	   ::=    	AndExpr ( "or" AndExpr )*
+    rule OrExpr { <AndExpr> [ 'or' <AndExpr>]* };
+
 ##[47]    	AndExpr 	   ::=    	ComparisonExpr ( "and" ComparisonExpr )*
+    rule AndExpr { <ComparisonExpr> [ 'and' <ComparisonExpr>]* };
+
 ##[48]    	ComparisonExpr 	   ::=    	RangeExpr ( (ValueComp
 ##| GeneralComp
 ##| NodeComp) RangeExpr )?
+    rule ComparisonExpr {
+        <RangeExpr> [ [ <ValueComp> | <GeneralComp> | <NodeComp> ] <RangeExpr> ]?
+    };
+
 ##[49]    	RangeExpr 	   ::=    	AdditiveExpr ( "to" AdditiveExpr )?
+    rule RangeExpr { <AdditiveExpr> [ 'to' <AdditiveExpr> ]? };
+
 ##[50]    	AdditiveExpr 	   ::=    	MultiplicativeExpr ( ("+" | "-") MultiplicativeExpr )*
+    rule AdditiveExpr { <MultiplicativeExpr> [ ['+' | '-'] <MultiplicativeExpr> ]* };
+
 ##[51]    	MultiplicativeExpr 	   ::=    	UnionExpr ( ("*" | "div" | "idiv" | "mod") UnionExpr )*
+    rule MultiplicativeExpr { <UnionExpr> [ ['*' | 'div'| 'idiv' | 'mod'] <UnionExpr> ]* };
+
 ##[52]    	UnionExpr 	   ::=    	IntersectExceptExpr ( ("union" | "|") IntersectExceptExpr )*
+    rule UnionExpr { <IntersectExceptExpr> [ ['union' | '|'] <IntersectExceptExpr> ]* };
+
 ##[53]    	IntersectExceptExpr 	   ::=    	InstanceofExpr ( ("intersect" | "except") InstanceofExpr )*
+    rule IntersectExceptExpr { <InstanceofExpr> [ ['intersect' | 'except'] <InstanceofExpr> ]* };
+
 ##[54]    	InstanceofExpr 	   ::=    	TreatExpr ( "instance" "of" SequenceType )?
+    rule InstanceofExpr { <TreatExpr> [ 'instance' 'of' <SequenceType> ]? };
 ##[55]    	TreatExpr 	   ::=    	CastableExpr ( "treat" "as" SequenceType )?
+    rule TreatExpr { <CastableExpr> [ 'treat' 'as' <SequenceType> ]? };
 ##[56]    	CastableExpr 	   ::=    	CastExpr ( "castable" "as" SingleType )?
+    rule CastableExpr { <CastExpr> [ 'castable' 'as' <SingleType> ]? };
 ##[57]    	CastExpr 	   ::=    	UnaryExpr ( "cast" "as" SingleType )?
+    rule CastExpr { <UnaryExpr> [ 'cast' 'as' <SingleType> ]? };
+
 ##[58]    	UnaryExpr 	   ::=    	("-" | "+")* ValueExpr
+    rule UnaryExpr { ['-'|'+']* <ValueExpr> };
+
 ##[59]    	ValueExpr 	   ::=    	ValidateExpr | PathExpr | ExtensionExpr
+    rule ValueExpr { <Literal> };
 ##[60]    	GeneralComp 	   ::=    	"=" | "!=" | "<" | "<=" | ">" | ">="
+    token GeneralComp { '=' | '!=' | '<' | '<=' | '>' | '>=' };
+
 ##[61]    	ValueComp 	   ::=    	"eq" | "ne" | "lt" | "le" | "gt" | "ge"
+    token ValueComp { 'eq' | 'ne' | 'le' | 'lt' | 'gt' | 'ge' };
+
 ##[62]    	NodeComp 	   ::=    	"is" | "<<" | ">>"
+    token NodeComp { 'is' | '<<' | '>>' };
+
 ##[63]    	ValidateExpr 	   ::=    	"validate" ValidationMode? "{" Expr "}"
 ##[64]    	ValidationMode 	   ::=    	"lax" | "strict"
 ##[65]    	ExtensionExpr 	   ::=    	Pragma+ "{" Expr? "}"
@@ -140,7 +178,11 @@ grammar XQuery::Parser::Grammar {
 ##[83]    	Predicate 	   ::=    	"[" Expr "]"
 ##[84]    	PrimaryExpr 	   ::=    	Literal | VarRef | ParenthesizedExpr | ContextItemExpr | FunctionCall | OrderedExpr | UnorderedExpr | Constructor
 ##[85]    	Literal 	   ::=    	NumericLiteral | StringLiteral
+    token Literal        { <NumericLiteral> | <StringLiteral> };
+
 ##[86]    	NumericLiteral 	   ::=    	IntegerLiteral | DecimalLiteral | DoubleLiteral
+    token NumericLiteral { <DoubleLiteral> | <DecimalLiteral> | <IntegerLiteral> };
+
 ##[87]    	VarRef 	   ::=    	"$" VarName
 ##[88]    	VarName 	   ::=    	QName
 ##[89]    	ParenthesizedExpr 	   ::=    	"(" Expr? ")"
@@ -187,12 +229,27 @@ grammar XQuery::Parser::Grammar {
 ##[115]    	CompCommentConstructor 	   ::=    	"comment" "{" Expr "}"
 ##[116]    	CompPIConstructor 	   ::=    	"processing-instruction" (NCName | ("{" Expr "}")) "{" Expr? "}"
 ##[117]    	SingleType 	   ::=    	AtomicType "?"?
+    token SingleType { <AtomicType> '?'? };
+
 ##[118]    	TypeDeclaration 	   ::=    	"as" SequenceType
+    rule TypeDeclaration { 'as' <SequenceType> };
+
 ##[119]    	SequenceType 	   ::=    	("empty-sequence" "(" ")")
 ##| (ItemType OccurrenceIndicator?)
+    rule SequenceType {
+        'empty-sequence' '(' ')'
+        | <ItemType> <OccurrenceIndicator>?
+    };
 ##[120]    	OccurrenceIndicator 	   ::=    	"?" | "*" | "+" 	/* xgs: occurrence-indicators */
+    token OccurrenceIndicator { '?' | '*' | '+' };
+
 ##[121]    	ItemType 	   ::=    	KindTest | ("item" "(" ")") | AtomicType
+    #rule ItemType { <KindTest> | 'item' '(' ')' | <AtomicType> };
+    rule ItemType { 'item' '(' ')' | <AtomicType> };
+
 ##[122]    	AtomicType 	   ::=    	QName
+    token AtomicType { <QName> };
+
 ##[123]    	KindTest 	   ::=    	DocumentTest
 ##| ElementTest
 ##| AttributeTest
@@ -215,14 +272,18 @@ grammar XQuery::Parser::Grammar {
 ##[134]    	ElementNameOrWildcard 	   ::=    	ElementName | "*"
 ##[135]    	SchemaElementTest 	   ::=    	"schema-element" "(" ElementDeclaration ")"
 ##[136]    	ElementDeclaration 	   ::=    	ElementName
+    token ElementDeclaration { <QName> };
 ##[137]    	AttributeName 	   ::=    	QName
+    token AttributeName  { <QName> };
 ##[138]    	ElementName 	   ::=    	QName
+    token ElementName    { <QName> };
 ##[139]    	TypeName 	   ::=    	QName
+    token TypeName       { <QName> };
+
 ##[140]    	URILiteral 	   ::=    	StringLiteral
+    token URILiteral     { <StringLiteral> };
 
-    token Literal        { <NumericLiteral> | <StringLiteral> };
 
-    token NumericLiteral { <DoubleLiteral> | <DecimalLiteral> | <IntegerLiteral> };
 
     token IntegerLiteral { \d+ };
     token DecimalLiteral { '.' \d+ | \d+ '.' \d* };
