@@ -1,7 +1,7 @@
 use v6;
 
 grammar XQuery::Parser::Grammar {
-    rule TOP { ^ <Module> $};
+    rule TOP { <Module> };
 
 #[1]    	Module 	   ::=    	VersionDecl? (LibraryModule | MainModule)
     rule  Module  { <VersionDecl>? [ <MainModule> ] };
@@ -11,27 +11,27 @@ grammar XQuery::Parser::Grammar {
 
 #[3]    	MainModule 	   ::=    	Prolog QueryBody
 #rule  MainModule     { <Prolog> <QueryBody> };
-    rule  MainModule     { <Literal> };
+    rule  MainModule     { <Prolog> <Literal> };
 
 
 ##[4]    	LibraryModule 	   ::=    	ModuleDecl Prolog
 ##[5]    	ModuleDecl 	   ::=    	"module" "namespace" NCName "=" URILiteral Separator
 ##[6]    	Prolog 	   ::=    	((DefaultNamespaceDecl | Setter | NamespaceDecl | Import) Separator)* ((VarDecl | FunctionDecl | OptionDecl) Separator)*
     rule Prolog {
-        [
-            [ 
-                | <DefaultNamespaceDecl> 
-                | <Setter> 
-                | <NamespaceDecl> 
-                | <Import> 
-            ] 
-            ';'
-        ]* 
+#        [
+#            [ 
+#                | <DefaultNamespaceDecl> 
+#                | <Setter> 
+#                | <NamespaceDecl> 
+#                | <Import> 
+#            ] 
+#            ';'
+#        ]* 
         [
             [ 
                 | <VarDecl> 
-                | <FunctionDecl> 
-                | <OptionDecl> 
+#                | <FunctionDecl> 
+#                | <OptionDecl> 
             ] 
             ';'
         ]*
@@ -53,7 +53,12 @@ grammar XQuery::Parser::Grammar {
 ##[21]    	SchemaImport 	   ::=    	"import" "schema" SchemaPrefix? URILiteral ("at" URILiteral ("," URILiteral)*)?
 ##[22]    	SchemaPrefix 	   ::=    	("namespace" NCName "=") | ("default" "element" "namespace")
 ##[23]    	ModuleImport 	   ::=    	"import" "module" ("namespace" NCName "=")? URILiteral ("at" URILiteral ("," URILiteral)*)?
+
 ##[24]    	VarDecl 	   ::=    	"declare" "variable" "$" QName TypeDeclaration? ((":=" ExprSingle) | "external")
+    rule VarDecl {
+        'declare' 'variable' '$' <!ws> <QName> [ 'external' ]?
+    };
+
 ##[25]    	ConstructionDecl 	   ::=    	"declare" "construction" ("strip" | "preserve")
 ##[26]    	FunctionDecl 	   ::=    	"declare" "function" QName "(" ParamList? ")" ("as" SequenceType)? (EnclosedExpr | "external")
 ##[27]    	ParamList 	   ::=    	Param ("," Param)*
@@ -223,7 +228,7 @@ grammar XQuery::Parser::Grammar {
     token DecimalLiteral { '.' \d+ | \d+ '.' \d* };
     token DoubleLiteral  { [ '.' \d+ | \d+ ['.' \d*]? ] <[eE]> <[+\-]>? \d+ }
     
-    token StringLiteral  { '"' <-[\"]>* '"' }
+    token StringLiteral  { '"' <-[\"]>* '"' | <[\']> <-[\']>* <[\']> }
 
 #[145]    	PredefinedEntityRef 	   ::=    	"&" ("lt" | "gt" | "amp" | "quot" | "apos") ";" 	/* ws: explicit */
 #[146]    	EscapeQuot 	   ::=    	'""'
@@ -237,16 +242,26 @@ grammar XQuery::Parser::Grammar {
 #[152]    	PITarget 	   ::=    	[http://www.w3.org/TR/REC-xml#NT-PITarget] XML 	/* xgs: xml-version */
 #[153]    	CharRef 	   ::=    	[http://www.w3.org/TR/REC-xml#NT-CharRef] XML 	/* xgs: xml-version */
 #[154]    	QName 	   ::=    	[http://www.w3.org/TR/REC-xml-names/#NT-QName] Names 	/* xgs: xml-version */
+    token QName {
+        [
+            | <NCName>
+            | <NCName> ':' <NCName>
+        ]
+    };
 #[155]    	NCName 	   ::=    	[http://www.w3.org/TR/REC-xml-names/#NT-NCName] Names 	/* xgs: xml-version */
+    token NCName {
+        \w+
+    };
 #[156]    	S 	   ::=    	[http://www.w3.org/TR/REC-xml#NT-S] XML 	/* xgs: xml-version */
 #[157]    	Char 	   ::=    	[http://www.w3.org/TR/REC-xml#NT-Char] XML 	/* xgs: xml-version */
 
 #The following symbols are used only in the definition of terminal symbols; they are not terminal symbols in the grammar of A.1 EBNF.
 #[158]    	Digits 	   ::=    	[0-9]+
 #[159]    	CommentContents 	   ::=    	(Char+ - (Char* ('(:' | ':)') Char*))
-    token  CommentContents  { .+ <! '(:' | ':)'> .* };
+    #token  CommentContents  { .+ <! '(:' | ':)'> .* };
+    rule  CommentContents  { <-[:]>+ };
 
-    token ws { \s+ | <Comment> };
+    token ws { \s+ <Comment>? \s* };
 };
 
 =begin spec
