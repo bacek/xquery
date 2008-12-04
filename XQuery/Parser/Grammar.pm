@@ -1,6 +1,8 @@
 use v6;
 
-grammar XQuery::Parser::Grammar {
+# There is bug in PGE with doesn't handle :: names properly
+grammar XQueryGrammar {
+
     rule TOP { <Module> };
 
 #[1]    	Module 	   ::=    	VersionDecl? (LibraryModule | MainModule)
@@ -13,11 +15,11 @@ grammar XQuery::Parser::Grammar {
 #rule  MainModule     { <Prolog> <QueryBody> };
     rule  MainModule     { <Prolog> <QueryBody> };
 
-
 ##[4]    	LibraryModule 	   ::=    	ModuleDecl Prolog
 ##[5]    	ModuleDecl 	   ::=    	"module" "namespace" NCName "=" URILiteral Separator
 ##[6]    	Prolog 	   ::=    	((DefaultNamespaceDecl | Setter | NamespaceDecl | Import) Separator)* ((VarDecl | FunctionDecl | OptionDecl) Separator)*
     rule Prolog {
+        [ <VarDecl> ';' ]*
 #        [
 #            [ 
 #                | <DefaultNamespaceDecl> 
@@ -27,15 +29,16 @@ grammar XQuery::Parser::Grammar {
 #            ] 
 #            ';'
 #        ]* 
-        [
-            [ 
-                | <VarDecl> 
+#        [
+#            [ 
+#                 <VarDecl> 
 #                | <FunctionDecl> 
 #                | <OptionDecl> 
-            ] 
-            ';'
-        ]*
+#            ] 
+#            ';'
+#        ]*
     };
+
 ##[7]    	Setter 	   ::=    	BoundarySpaceDecl | DefaultCollationDecl | BaseURIDecl | ConstructionDecl | OrderingModeDecl | EmptyOrderDecl | CopyNamespacesDecl
 ##[8]    	Import 	   ::=    	SchemaImport | ModuleImport
 ##[9]    	Separator 	   ::=    	";"
@@ -56,7 +59,7 @@ grammar XQuery::Parser::Grammar {
 
 ##[24]    	VarDecl 	   ::=    	"declare" "variable" "$" QName TypeDeclaration? ((":=" ExprSingle) | "external")
     rule VarDecl {
-        'declare' 'variable' '$' <QName> [ 'external' ]?
+        'declare' 'variable' '$' <QName> [ [':=' <ExprSingle>] | 'external' ]
     };
 
 ##[25]    	ConstructionDecl 	   ::=    	"declare" "construction" ("strip" | "preserve")
@@ -287,9 +290,9 @@ grammar XQuery::Parser::Grammar {
 
     token IntegerLiteral { \d+ };
     token DecimalLiteral { '.' \d+ | \d+ '.' \d* };
-    token DoubleLiteral  { [ '.' \d+ | \d+ ['.' \d*]? ] <[eE]> <[+\-]>? \d+ }
+    token DoubleLiteral  { [ '.' \d+ | \d+ ['.' \d*]? ] <[eE]> <[+\-]>? \d+ };
     
-    token StringLiteral  { '"' <-[\"]>* '"' | <[\']> <-[\']>* <[\']> }
+    token StringLiteral  { '"' <-['"']>* '"' | <[\']> <-[\']>* <[\']> };
 
 #[145]    	PredefinedEntityRef 	   ::=    	"&" ("lt" | "gt" | "amp" | "quot" | "apos") ";" 	/* ws: explicit */
 #[146]    	EscapeQuot 	   ::=    	'""'
@@ -299,7 +302,9 @@ grammar XQuery::Parser::Grammar {
 #[150]    	AposAttrContentChar 	   ::=    	Char - ['{}<&]
 #[151]    	Comment 	   ::=    	"(:" (CommentContents | Comment)* ":)" 	/* ws: explicit */
 #				/* gn: comments */
-    token Comment         { '(:' [ <CommentContents> | <Comment> ]*':)' }
+    #token Comment         { '(:' [ <CommentContents> | <Comment> ]*':)' }
+    # I NEED LTM!!!
+    token Comment         { '(:' <CommentContents>? ':)' }
 #[152]    	PITarget 	   ::=    	[http://www.w3.org/TR/REC-xml#NT-PITarget] XML 	/* xgs: xml-version */
 #[153]    	CharRef 	   ::=    	[http://www.w3.org/TR/REC-xml#NT-CharRef] XML 	/* xgs: xml-version */
 #[154]    	QName 	   ::=    	[http://www.w3.org/TR/REC-xml-names/#NT-QName] Names 	/* xgs: xml-version */
@@ -311,7 +316,7 @@ grammar XQuery::Parser::Grammar {
     };
 #[155]    	NCName 	   ::=    	[http://www.w3.org/TR/REC-xml-names/#NT-NCName] Names 	/* xgs: xml-version */
     token NCName {
-        \w+
+        [ \w | '-']+
     };
 #[156]    	S 	   ::=    	[http://www.w3.org/TR/REC-xml#NT-S] XML 	/* xgs: xml-version */
 #[157]    	Char 	   ::=    	[http://www.w3.org/TR/REC-xml#NT-Char] XML 	/* xgs: xml-version */
@@ -320,9 +325,14 @@ grammar XQuery::Parser::Grammar {
 #[158]    	Digits 	   ::=    	[0-9]+
 #[159]    	CommentContents 	   ::=    	(Char+ - (Char* ('(:' | ':)') Char*))
     #token  CommentContents  { .+ <! '(:' | ':)'> .* };
-    rule  CommentContents  { <-[:]>+ };
+    rule  CommentContents  { <-[:]>* };
 
-    token ws { \s+ <Comment>? \s* };
+    #token ws { <!ww> };
+    #token ws { <!ww> <Comment>* };
+    token S { \h | \v };
+    token ws_all { <.S> | <Comment> };
+
+    token ws { <!S> <ws_all>+ | <ws_all>* };
 };
 
 =begin spec
