@@ -1,0 +1,8 @@
+TODO.
+
+1. Finish parser.
+2. Implement Core tree.
+3. Implement optimizations of Core tree.
+4. Implement converting Core tree to Execution tree.
+...
+6. Profit
