@@ -1,10 +1,16 @@
 use Test;
 use XQuery::Parser::Grammar;
 
-plan 3;
+plan 5;
 
-ok('declare variable $foo external' ~~ XQuery::Parser::Grammar::VarDecl, 'VarDecl parsed');
+my $query = 'declare variable $foo external';
+ok($query ~~ XQuery::Parser::Grammar::VarDecl, 'VarDecl parsed');
 ok($/<QName> eq 'foo', '.. correctly');
 
-ok('declare variable $foo external;' ~~ XQuery::Parser::Grammar::Prolog, 'VarDecl parsed as Prolog');
+$query ~= ';';
+ok($query ~~ XQuery::Parser::Grammar::Prolog, 'VarDecl parsed in Prolog');
+
+$query ~= '"foo"';
+ok($query ~~ XQuery::Parser::Grammar::MainModule, 'VarDecl parsed in MainModule');
+is('declare variable $foo external;', ~$/<Prolog>, '..correctly');
 
