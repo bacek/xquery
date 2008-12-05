@@ -325,12 +325,12 @@ grammar XQueryGrammar {
 #[158]    	Digits 	   ::=    	[0-9]+
 #[159]    	CommentContents 	   ::=    	(Char+ - (Char* ('(:' | ':)') Char*))
     #token  CommentContents  { .+ <! '(:' | ':)'> .* };
-    rule  CommentContents  { <-[:]>* };
+    token  CommentContents  { <-[:]>* };
 
     #token ws { <!ww> };
     #token ws { <!ww> <Comment>* };
     token S { \h | \v };
-    token ws_all { <.S> | <Comment> };
+    token ws_all { <.S> | <.Comment> };
 
     token ws { <!S> <ws_all>+ | <ws_all>* };
 };
