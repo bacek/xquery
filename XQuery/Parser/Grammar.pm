@@ -78,21 +78,54 @@ grammar XQueryGrammar {
 ##| TypeswitchExpr
 ##| IfExpr
 ##| OrExpr
-    rule ExprSingle { <OrExpr> };
+    rule ExprSingle { 
+        | <FLWORExpr>
+##| QuantifiedExpr
+##| TypeswitchExpr
+        | <IfExpr>
+        | <OrExpr> 
+    };
 
 ##[33]    	FLWORExpr 	   ::=    	(ForClause | LetClause)+ WhereClause? OrderByClause? "return" ExprSingle
+    rule FLWORExpr { [ <ForClause> | <LetClause> ]+ <WhereClause>? <OrderByClause>? 'return' <ExprSingle> };
+
 ##[34]    	ForClause 	   ::=    	"for" "$" VarName TypeDeclaration? PositionalVar? "in" ExprSingle ("," "$" VarName TypeDeclaration? PositionalVar? "in" ExprSingle)*
+    rule ForClause { 
+        'for' '$' <VarName> 'in' <ExprSingle>
+    };
+            #'for' '$' <VarName> <TypeDeclaration>? <PositionalVar>? 'in' <ExprSingle>
+            #[ ',' '$' <VarName> <TypeDeclaration>? <PositionalVar>? 'in' <ExprSingle> ]*
 ##[35]    	PositionalVar 	   ::=    	"at" "$" VarName
+    rule PositionalVar { 'at' '$' <VarName> };
+
 ##[36]    	LetClause 	   ::=    	"let" "$" VarName TypeDeclaration? ":=" ExprSingle ("," "$" VarName TypeDeclaration? ":=" ExprSingle)*
+    rule LetClause     { 
+        'let' '$' <VarName> ':=' <ExprSingle> 
+    };
+            #'let' '$' <VarName> <TypeDeclaration>? ':=' <ExprSingle> 
+            #[',' '$' <VarName> <TypeDeclaration>? ':=' <ExprSingle>]* 
+
 ##[37]    	WhereClause 	   ::=    	"where" ExprSingle
+    rule WhereClause { 'where' <ExprSingle> };
+
 ##[38]    	OrderByClause 	   ::=    	(("order" "by") | ("stable" "order" "by")) OrderSpecList
+    rule OrderByClause { [ [ 'order' 'by' ] | ['stable' 'order' 'by' ] ] <OrderSpecList> };
+
 ##[39]    	OrderSpecList 	   ::=    	OrderSpec ("," OrderSpec)*
+    rule OrderSpecList { <OrderSpec> [ ',' <OrderSpec> ]* };
+
 ##[40]    	OrderSpec 	   ::=    	ExprSingle OrderModifier
+    rule OrderSpec     { <ExprSingle> <OrderModifier> };
+
 ##[41]    	OrderModifier 	   ::=    	("ascending" | "descending")? ("empty" ("greatest" | "least"))? ("collation" URILiteral)?
+    rule OrderModifier { [ 'ascending' | 'descending' ]? [ 'empty' [ 'greatest' | 'least' ] ]? [ 'collation' <URILiteral>]? };
+
 ##[42]    	QuantifiedExpr 	   ::=    	("some" | "every") "$" VarName TypeDeclaration? "in" ExprSingle ("," "$" VarName TypeDeclaration? "in" ExprSingle)* "satisfies" ExprSingle
 ##[43]    	TypeswitchExpr 	   ::=    	"typeswitch" "(" Expr ")" CaseClause+ "default" ("$" VarName)? "return" ExprSingle
 ##[44]    	CaseClause 	   ::=    	"case" ("$" VarName "as")? SequenceType "return" ExprSingle
 ##[45]    	IfExpr 	   ::=    	"if" "(" Expr ")" "then" ExprSingle "else" ExprSingle
+    rule IfExpr { 'if' '(' <Expr> ')' 'then' <ExprSingle> 'else' <ExprSingle> };
+
 ##[46]    	OrExpr 	   ::=    	AndExpr ( "or" AndExpr )*
     rule OrExpr { <AndExpr> [ 'or' <AndExpr>]* };
 
@@ -134,7 +167,8 @@ grammar XQueryGrammar {
     rule UnaryExpr { ['-'|'+']* <ValueExpr> };
 
 ##[59]    	ValueExpr 	   ::=    	ValidateExpr | PathExpr | ExtensionExpr
-    rule ValueExpr { <Literal> };
+    # XXX Shortcut for non-implemented features
+    rule ValueExpr { <PrimaryExpr> };
 ##[60]    	GeneralComp 	   ::=    	"=" | "!=" | "<" | "<=" | ">" | ">="
     token GeneralComp { '=' | '!=' | '<' | '<=' | '>' | '>=' };
 
@@ -180,6 +214,17 @@ grammar XQueryGrammar {
 ##[82]    	PredicateList 	   ::=    	Predicate*
 ##[83]    	Predicate 	   ::=    	"[" Expr "]"
 ##[84]    	PrimaryExpr 	   ::=    	Literal | VarRef | ParenthesizedExpr | ContextItemExpr | FunctionCall | OrderedExpr | UnorderedExpr | Constructor
+    token PrimaryExpr {
+        | <Literal>
+        | <VarRef>
+        | <ParenthesizedExpr>
+        # | <ContextItemExpr>
+        #| <FunctionCall>
+        #| <OrderedExpr>
+        #| <UnorderedExpr>
+        #| <Constructor>
+    };
+
 ##[85]    	Literal 	   ::=    	NumericLiteral | StringLiteral
     token Literal        { <NumericLiteral> | <StringLiteral> };
 
@@ -187,8 +232,13 @@ grammar XQueryGrammar {
     token NumericLiteral { <DoubleLiteral> | <DecimalLiteral> | <IntegerLiteral> };
 
 ##[87]    	VarRef 	   ::=    	"$" VarName
+    token VarRef         { '$' <VarName> };
 ##[88]    	VarName 	   ::=    	QName
+    token VarName        { <QName> };
+
 ##[89]    	ParenthesizedExpr 	   ::=    	"(" Expr? ")"
+    rule ParenthesizedExpr { '(' <Expr>? ')' };
+
 ##[90]    	ContextItemExpr 	   ::=    	"."
 ##[91]    	OrderedExpr 	   ::=    	"ordered" "{" Expr "}"
 ##[92]    	UnorderedExpr 	   ::=    	"unordered" "{" Expr "}"
@@ -303,8 +353,7 @@ grammar XQueryGrammar {
 #[151]    	Comment 	   ::=    	"(:" (CommentContents | Comment)* ":)" 	/* ws: explicit */
 #				/* gn: comments */
     #token Comment         { '(:' [ <CommentContents> | <Comment> ]*':)' }
-    token Comment         { '(:' <CommentContents>* ':)' }
-    #token Comment         { '(:' <CommentContents>? ':)' }
+    token Comment         { '(:' <CommentContents>? ':)' }
 #[152]    	PITarget 	   ::=    	[http://www.w3.org/TR/REC-xml#NT-PITarget] XML 	/* xgs: xml-version */
 #[153]    	CharRef 	   ::=    	[http://www.w3.org/TR/REC-xml#NT-CharRef] XML 	/* xgs: xml-version */
 #[154]    	QName 	   ::=    	[http://www.w3.org/TR/REC-xml-names/#NT-QName] Names 	/* xgs: xml-version */
