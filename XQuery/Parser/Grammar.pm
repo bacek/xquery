@@ -278,7 +278,7 @@ grammar XQueryGrammar {
         | <FunctionCall>
         | <OrderedExpr>
         | <UnorderedExpr>
-        #| <Constructor>
+        | <Constructor>
     };
 
     token Literal        { [ <NumericLiteral> | <StringLiteral> ] };
@@ -350,7 +350,7 @@ grammar XQueryGrammar {
 ##| ElementContentChar
     rule DirElemContent {
         | <DirectConstructor>
-        | <CDataSection>
+        #| <CDataSection>
         | <CommonContent>
         | <ElementContentChar>
     };
@@ -461,11 +461,16 @@ grammar XQueryGrammar {
     token StringLiteral  { '"' .*? <before '"'> '"' | <[\']> <-[\']>* <[\']> };
 
 #[145]    	PredefinedEntityRef 	   ::=    	"&" ("lt" | "gt" | "amp" | "quot" | "apos") ";" 	/* ws: explicit */
-#[146]    	EscapeQuot 	   ::=    	'""'
-#[147]    	EscapeApos 	   ::=    	"''"
+    token EscapeQuot { '""' };
+
+    token EscapeApos { '\'\'' };
+
 #[148]    	ElementContentChar 	   ::=    	Char - [{}<&]
+    token ElementContentChar { <-[{}<&]> };
 #[149]    	QuotAttrContentChar 	   ::=    	Char - ["{}<&]
+    token QuotAttrValueContent { <-["{}<&]> };
 #[150]    	AposAttrContentChar 	   ::=    	Char - ['{}<&]
+    token AposAttrContentChar { <-[\'{}<&]> };
 #[151]    	Comment 	   ::=    	"(:" (CommentContents | Comment)* ":)" 	/* ws: explicit */
 #				/* gn: comments */
     #token Comment         { '(:' [ <CommentContents> | <Comment> ]*':)' }
