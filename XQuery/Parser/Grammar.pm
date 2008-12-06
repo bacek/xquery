@@ -3,7 +3,9 @@ use v6;
 # There is bug in PGE with doesn't handle :: names properly
 grammar XQueryGrammar {
 
-    rule TOP { <Module> };
+    rule TOP { 
+        <Module>
+    };
 
 #[1]    	Module 	   ::=    	VersionDecl? (LibraryModule | MainModule)
     rule  Module  { <VersionDecl>? [ <MainModule> ] };
@@ -226,7 +228,7 @@ grammar XQueryGrammar {
     };
 
 ##[85]    	Literal 	   ::=    	NumericLiteral | StringLiteral
-    token Literal        { <NumericLiteral> | <StringLiteral> };
+    token Literal        { [ <NumericLiteral> | <StringLiteral> ] :: };
 
 ##[86]    	NumericLiteral 	   ::=    	IntegerLiteral | DecimalLiteral | DoubleLiteral
     token NumericLiteral { <DoubleLiteral> | <DecimalLiteral> | <IntegerLiteral> };
@@ -342,7 +344,7 @@ grammar XQueryGrammar {
     token DecimalLiteral { '.' \d+ | \d+ '.' \d* };
     token DoubleLiteral  { [ '.' \d+ | \d+ ['.' \d*]? ] <[eE]> <[+\-]>? \d+ };
     
-    token StringLiteral  { '"' <-['"']>* '"' | <[\']> <-[\']>* <[\']> };
+    token StringLiteral  { '"' .*? <before '"'> '"' | <[\']> <-[\']>* <[\']> };
 
 #[145]    	PredefinedEntityRef 	   ::=    	"&" ("lt" | "gt" | "amp" | "quot" | "apos") ";" 	/* ws: explicit */
 #[146]    	EscapeQuot 	   ::=    	'""'
@@ -353,7 +355,7 @@ grammar XQueryGrammar {
 #[151]    	Comment 	   ::=    	"(:" (CommentContents | Comment)* ":)" 	/* ws: explicit */
 #				/* gn: comments */
     #token Comment         { '(:' [ <CommentContents> | <Comment> ]*':)' }
-    token Comment         { '(:' <CommentContents>? ':)' }
+    token Comment         { '(:' <CommentContents>? ':)' <cut> }
 #[152]    	PITarget 	   ::=    	[http://www.w3.org/TR/REC-xml#NT-PITarget] XML 	/* xgs: xml-version */
 #[153]    	CharRef 	   ::=    	[http://www.w3.org/TR/REC-xml#NT-CharRef] XML 	/* xgs: xml-version */
 #[154]    	QName 	   ::=    	[http://www.w3.org/TR/REC-xml-names/#NT-QName] Names 	/* xgs: xml-version */
@@ -378,7 +380,10 @@ grammar XQueryGrammar {
     token S { \h | \v };
     token ws_all { <.S> | <.Comment> };
 
-    token ws { <!S> <ws_all>+ | <ws_all>* };
+    token ws { 
+        || <!S> <ws_all>+ 
+        || <ws_all>* 
+    };
 };
 
 =begin spec
