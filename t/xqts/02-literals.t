@@ -10,7 +10,7 @@ xqts(
     dirname => 'XQTS/Queries/XQuery/Expressions/PrimaryExpr/Literals/',
     filemask => 'Literals%03d.xq',
     expect_fail => (6..9, 36..55),
-    todo        => (5, 62..69)
+    todo        => (62..65, 67..69)
 );
 
 =begin
