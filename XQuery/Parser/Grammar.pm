@@ -65,6 +65,7 @@ grammar XQueryGrammar {
 ##[27]    	ParamList 	   ::=    	Param ("," Param)*
 ##[28]    	Param 	   ::=    	"$" QName TypeDeclaration?
 ##[29]    	EnclosedExpr 	   ::=    	"{" Expr "}"
+    rule EnclosedExpr { '{' <Expr> '}' };
     
     rule QueryBody { <Expr> };
 
@@ -215,8 +216,7 @@ grammar XQueryGrammar {
 
 ##[75]    	ReverseStep 	   ::=    	(ReverseAxis NodeTest) | AbbrevReverseStep
     rule ReverseStep {
-        | <ReverseAxis> <NodeTest>
-        | <AbbrevReverseStep>
+        [ <ReverseAxis> <NodeTest> ] | <AbbrevReverseStep>
     };
 
 ##[76]    	ReverseAxis 	   ::=    	("parent" "::")
@@ -309,22 +309,60 @@ grammar XQueryGrammar {
 
 ##[94]    	Constructor 	   ::=    	DirectConstructor
 ##| ComputedConstructor
+    rule Constructor { <DirectConstructor> };
 ##[95]    	DirectConstructor 	   ::=    	DirElemConstructor
 ##| DirCommentConstructor
 ##| DirPIConstructor
+    rule DirectConstructor {
+        | <DirElemConstructor>
+        #| <DirCommentConstructor>
+        #| <DirPIConstructor>
+    };
+
 ##[96]    	DirElemConstructor 	   ::=    	"<" QName DirAttributeList ("/>" | (">" DirElemContent* "</" QName S? ">")) 	/* ws: explicit */
+    token DirElemConstructor {
+        '<' <QName> <DirAttributeList> [ '/>' | [ '>' <DirElemContent>* '</' <QName> <S>? '>' ] ]
+    };
+
 ##[97]    	DirAttributeList 	   ::=    	(S (QName S? "=" S? DirAttributeValue)?)* 	/* ws: explicit */
+    token DirAttributeList {
+        [ <S> [ <QName> <S>? '=' <S>? <DirAttributeValue>]? ]*
+    };
+
 ##[98]    	DirAttributeValue 	   ::=    	('"' (EscapeQuot | QuotAttrValueContent)* '"')
 ##| ("'" (EscapeApos | AposAttrValueContent)* "'") 	/* ws: explicit */
+    token DirAttributeValue {
+        | [ '"' [ <EscapeQuot> | <QuotAttrValueContent> ]* '"' ]
+        | [ '\'' [ <EscapeApos> | <AposAttrValueContent> ]* '\'' ]
+    };
+
 ##[99]    	QuotAttrValueContent 	   ::=    	QuotAttrContentChar
 ##| CommonContent
+    rule QuotAttrValueContent { <QuotAttrContentChar> | <CommonContent> };
+
 ##[100]    	AposAttrValueContent 	   ::=    	AposAttrContentChar
 ##| CommonContent
+    rule AposAttrValueContent { <AposAttrContentChar> | <CommonContent> };
+
 ##[101]    	DirElemContent 	   ::=    	DirectConstructor
 ##| CDataSection
 ##| CommonContent
 ##| ElementContentChar
+    rule DirElemContent {
+        | <DirectConstructor>
+        | <CDataSection>
+        | <CommonContent>
+        | <ElementContentChar>
+    };
+
 ##[102]    	CommonContent 	   ::=    	PredefinedEntityRef | CharRef | "{{" | "}}" | EnclosedExpr
+    rule CommonContent {
+        #| <PredefinedEntityRef>
+        #| <CharRef>
+        | '{{'
+        | '}}'
+        | <EnclosedExpr>
+    };
 ##[103]    	DirCommentConstructor 	   ::=    	"<!--" DirCommentContents "-->" 	/* ws: explicit */
 ##[104]    	DirCommentContents 	   ::=    	((Char - '-') | ('-' (Char - '-')))* 	/* ws: explicit */
 ##[105]    	DirPIConstructor 	   ::=    	"<?" PITarget (S DirPIContents)? "?>" 	/* ws: explicit */
