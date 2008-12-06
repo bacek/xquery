@@ -21,6 +21,6 @@ ok( 'fn:count(foo/bar)' ~~ / ^ <XQueryGrammar::FunctionCall> $ / );
 ok( 'fn:count($foo)' ~~ / ^ <XQueryGrammar::FunctionCall> $ / );
 ok( 'fn:count($foo/bar)' ~~ / ^ <XQueryGrammar::FunctionCall> $ / );
 ok( 'fn:count($foo/bar//baz)' ~~ / ^ <XQueryGrammar::FunctionCall> $ / );
-ok( ('fn:count($blah/foo//..)' ~~ / ^ <XQueryGrammar::FunctionCall> $ /), ' # TODO EPIC FAIL' );
+ok( ('fn:count($blah/foo//..)' ~~ / ^ <XQueryGrammar::FunctionCall> $ /), 'Final function call with path' );
 
 # vim: ft=perl6
