@@ -458,9 +458,16 @@ grammar XQueryGrammar {
     token DecimalLiteral { '.' \d+ | \d+ '.' \d* };
     token DoubleLiteral  { [ '.' \d+ | \d+ ['.' \d*]? ] <[eE]> <[+\-]>? \d+ };
     
-    token StringLiteral  { '"' .*? <before '"'> '"' | <[\']> <-[\']>* <[\']> };
+##[144]    	StringLiteral 	   ::=    	('"' (PredefinedEntityRef | CharRef | EscapeQuot | [^"&])* '"') | ("'" (PredefinedEntityRef | CharRef | EscapeApos | [^'&])* "'") 	/* ws: explicit */
+    token StringLiteral  { 
+        | '"' .*? <before '"'> '"' 
+        | <[\']> <-[\']>* <[\']> 
+    };
 
-#[145]    	PredefinedEntityRef 	   ::=    	"&" ("lt" | "gt" | "amp" | "quot" | "apos") ";" 	/* ws: explicit */
+    token PredefinedEntityRef {
+        '&' [ 'lt' | 'gt' | 'amp' | 'quot' | 'apos' ] ';'
+    };
+
     token EscapeQuot { '""' };
 
     token EscapeApos { '\'\'' };
