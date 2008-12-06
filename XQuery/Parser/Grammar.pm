@@ -303,8 +303,8 @@ grammar XQueryGrammar {
 #[151]    	Comment 	   ::=    	"(:" (CommentContents | Comment)* ":)" 	/* ws: explicit */
 #				/* gn: comments */
     #token Comment         { '(:' [ <CommentContents> | <Comment> ]*':)' }
-    # I NEED LTM!!!
-    token Comment         { '(:' <CommentContents>? ':)' }
+    token Comment         { '(:' <- [ '(:' | ':) ]>* ':)' }
+    #token Comment         { '(:' <CommentContents>? ':)' }
 #[152]    	PITarget 	   ::=    	[http://www.w3.org/TR/REC-xml#NT-PITarget] XML 	/* xgs: xml-version */
 #[153]    	CharRef 	   ::=    	[http://www.w3.org/TR/REC-xml#NT-CharRef] XML 	/* xgs: xml-version */
 #[154]    	QName 	   ::=    	[http://www.w3.org/TR/REC-xml-names/#NT-QName] Names 	/* xgs: xml-version */
@@ -324,11 +324,8 @@ grammar XQueryGrammar {
 #The following symbols are used only in the definition of terminal symbols; they are not terminal symbols in the grammar of A.1 EBNF.
 #[158]    	Digits 	   ::=    	[0-9]+
 #[159]    	CommentContents 	   ::=    	(Char+ - (Char* ('(:' | ':)') Char*))
-    #token  CommentContents  { .+ <! '(:' | ':)'> .* };
-    token  CommentContents  { <-[:]>* };
+    token  CommentContents  {  <- [ '(:' | ':)']>* };
 
-    #token ws { <!ww> };
-    #token ws { <!ww> <Comment>* };
     token S { \h | \v };
     token ws_all { <.S> | <.Comment> };
 
