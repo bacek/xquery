@@ -10,11 +10,8 @@ grammar XQueryGrammar {
 #[1]    	Module 	   ::=    	VersionDecl? (LibraryModule | MainModule)
     rule  Module  { <VersionDecl>? [ <MainModule> ] };
 
-#[2]    	VersionDecl 	   ::=    	"xquery" "version" StringLiteral ("encoding" StringLiteral)? Separator
     rule  VersionDecl    { 'xquery' 'version' <StringLiteral> [ 'encoding' <StringLiteral> ]? ';' };
-
-#[3]    	MainModule 	   ::=    	Prolog QueryBody
-#rule  MainModule     { <Prolog> <QueryBody> };
+    
     rule  MainModule     { <Prolog> <commit> <QueryBody> };
 
 ##[4]    	LibraryModule 	   ::=    	ModuleDecl Prolog
@@ -59,7 +56,6 @@ grammar XQueryGrammar {
 ##[22]    	SchemaPrefix 	   ::=    	("namespace" NCName "=") | ("default" "element" "namespace")
 ##[23]    	ModuleImport 	   ::=    	"import" "module" ("namespace" NCName "=")? URILiteral ("at" URILiteral ("," URILiteral)*)?
 
-##[24]    	VarDecl 	   ::=    	"declare" "variable" "$" QName TypeDeclaration? ((":=" ExprSingle) | "external")
     rule VarDecl {
         'declare' 'variable' '$' <QName> [ [':=' <ExprSingle>] | 'external' ]
     };
@@ -69,10 +65,9 @@ grammar XQueryGrammar {
 ##[27]    	ParamList 	   ::=    	Param ("," Param)*
 ##[28]    	Param 	   ::=    	"$" QName TypeDeclaration?
 ##[29]    	EnclosedExpr 	   ::=    	"{" Expr "}"
-##[30]    	QueryBody 	   ::=    	Expr
+    
     rule QueryBody { <Expr> };
 
-##[31]    	Expr 	   ::=    	ExprSingle ("," ExprSingle)*
     rule Expr      { <ExprSingle> [ ',' <ExprSingle> ]* };
 
 ##[32]    	ExprSingle 	   ::=    	FLWORExpr
@@ -88,7 +83,6 @@ grammar XQueryGrammar {
         | <OrExpr> 
     };
 
-##[33]    	FLWORExpr 	   ::=    	(ForClause | LetClause)+ WhereClause? OrderByClause? "return" ExprSingle
     rule FLWORExpr { [ <ForClause> | <LetClause> ]+ <WhereClause>? <OrderByClause>? 'return' <ExprSingle> };
 
 ##[34]    	ForClause 	   ::=    	"for" "$" VarName TypeDeclaration? PositionalVar? "in" ExprSingle ("," "$" VarName TypeDeclaration? PositionalVar? "in" ExprSingle)*
@@ -97,7 +91,7 @@ grammar XQueryGrammar {
     };
             #'for' '$' <VarName> <TypeDeclaration>? <PositionalVar>? 'in' <ExprSingle>
             #[ ',' '$' <VarName> <TypeDeclaration>? <PositionalVar>? 'in' <ExprSingle> ]*
-##[35]    	PositionalVar 	   ::=    	"at" "$" VarName
+    
     rule PositionalVar { 'at' '$' <VarName> };
 
 ##[36]    	LetClause 	   ::=    	"let" "$" VarName TypeDeclaration? ":=" ExprSingle ("," "$" VarName TypeDeclaration? ":=" ExprSingle)*
@@ -107,77 +101,57 @@ grammar XQueryGrammar {
             #'let' '$' <VarName> <TypeDeclaration>? ':=' <ExprSingle> 
             #[',' '$' <VarName> <TypeDeclaration>? ':=' <ExprSingle>]* 
 
-##[37]    	WhereClause 	   ::=    	"where" ExprSingle
     rule WhereClause { 'where' <ExprSingle> };
 
-##[38]    	OrderByClause 	   ::=    	(("order" "by") | ("stable" "order" "by")) OrderSpecList
     rule OrderByClause { [ [ 'order' 'by' ] | ['stable' 'order' 'by' ] ] <OrderSpecList> };
 
-##[39]    	OrderSpecList 	   ::=    	OrderSpec ("," OrderSpec)*
     rule OrderSpecList { <OrderSpec> [ ',' <OrderSpec> ]* };
 
-##[40]    	OrderSpec 	   ::=    	ExprSingle OrderModifier
     rule OrderSpec     { <ExprSingle> <OrderModifier> };
 
-##[41]    	OrderModifier 	   ::=    	("ascending" | "descending")? ("empty" ("greatest" | "least"))? ("collation" URILiteral)?
     rule OrderModifier { [ 'ascending' | 'descending' ]? [ 'empty' [ 'greatest' | 'least' ] ]? [ 'collation' <URILiteral>]? };
 
 ##[42]    	QuantifiedExpr 	   ::=    	("some" | "every") "$" VarName TypeDeclaration? "in" ExprSingle ("," "$" VarName TypeDeclaration? "in" ExprSingle)* "satisfies" ExprSingle
 ##[43]    	TypeswitchExpr 	   ::=    	"typeswitch" "(" Expr ")" CaseClause+ "default" ("$" VarName)? "return" ExprSingle
 ##[44]    	CaseClause 	   ::=    	"case" ("$" VarName "as")? SequenceType "return" ExprSingle
-##[45]    	IfExpr 	   ::=    	"if" "(" Expr ")" "then" ExprSingle "else" ExprSingle
     rule IfExpr { 'if' '(' <Expr> ')' 'then' <ExprSingle> 'else' <ExprSingle> };
 
-##[46]    	OrExpr 	   ::=    	AndExpr ( "or" AndExpr )*
     rule OrExpr { <AndExpr> [ 'or' <AndExpr>]* };
 
-##[47]    	AndExpr 	   ::=    	ComparisonExpr ( "and" ComparisonExpr )*
     rule AndExpr { <ComparisonExpr> [ 'and' <ComparisonExpr>]* };
 
-##[48]    	ComparisonExpr 	   ::=    	RangeExpr ( (ValueComp
-##| GeneralComp
-##| NodeComp) RangeExpr )?
     rule ComparisonExpr {
         <RangeExpr> [ [ <ValueComp> | <GeneralComp> | <NodeComp> ] <RangeExpr> ]?
     };
 
-##[49]    	RangeExpr 	   ::=    	AdditiveExpr ( "to" AdditiveExpr )?
     rule RangeExpr { <AdditiveExpr> [ 'to' <AdditiveExpr> ]? };
 
-##[50]    	AdditiveExpr 	   ::=    	MultiplicativeExpr ( ("+" | "-") MultiplicativeExpr )*
     rule AdditiveExpr { <MultiplicativeExpr> [ ['+' | '-'] <MultiplicativeExpr> ]* };
 
-##[51]    	MultiplicativeExpr 	   ::=    	UnionExpr ( ("*" | "div" | "idiv" | "mod") UnionExpr )*
     rule MultiplicativeExpr { <UnionExpr> [ ['*' | 'div'| 'idiv' | 'mod'] <UnionExpr> ]* };
 
-##[52]    	UnionExpr 	   ::=    	IntersectExceptExpr ( ("union" | "|") IntersectExceptExpr )*
     rule UnionExpr { <IntersectExceptExpr> [ ['union' | '|'] <IntersectExceptExpr> ]* };
 
-##[53]    	IntersectExceptExpr 	   ::=    	InstanceofExpr ( ("intersect" | "except") InstanceofExpr )*
     rule IntersectExceptExpr { <InstanceofExpr> [ ['intersect' | 'except'] <InstanceofExpr> ]* };
 
-##[54]    	InstanceofExpr 	   ::=    	TreatExpr ( "instance" "of" SequenceType )?
     rule InstanceofExpr { <TreatExpr> [ 'instance' 'of' <SequenceType> ]? };
-##[55]    	TreatExpr 	   ::=    	CastableExpr ( "treat" "as" SequenceType )?
+    
     rule TreatExpr { <CastableExpr> [ 'treat' 'as' <SequenceType> ]? };
-##[56]    	CastableExpr 	   ::=    	CastExpr ( "castable" "as" SingleType )?
+    
     rule CastableExpr { <CastExpr> [ 'castable' 'as' <SingleType> ]? };
-##[57]    	CastExpr 	   ::=    	UnaryExpr ( "cast" "as" SingleType )?
+    
     rule CastExpr { <UnaryExpr> [ 'cast' 'as' <SingleType> ]? };
 
-##[58]    	UnaryExpr 	   ::=    	("-" | "+")* ValueExpr
     rule UnaryExpr { ['-'|'+']* <ValueExpr> };
 
 ##[59]    	ValueExpr 	   ::=    	ValidateExpr | PathExpr | ExtensionExpr
     # XXX Shortcut for non-implemented features
     rule ValueExpr { <PrimaryExpr> };
-##[60]    	GeneralComp 	   ::=    	"=" | "!=" | "<" | "<=" | ">" | ">="
+
     token GeneralComp { '=' | '!=' | '<' | '<=' | '>' | '>=' };
 
-##[61]    	ValueComp 	   ::=    	"eq" | "ne" | "lt" | "le" | "gt" | "ge"
     token ValueComp { 'eq' | 'ne' | 'le' | 'lt' | 'gt' | 'ge' };
 
-##[62]    	NodeComp 	   ::=    	"is" | "<<" | ">>"
     token NodeComp { 'is' | '<<' | '>>' };
 
 ##[63]    	ValidateExpr 	   ::=    	"validate" ValidationMode? "{" Expr "}"
@@ -227,19 +201,15 @@ grammar XQueryGrammar {
         #| <Constructor>
     };
 
-##[85]    	Literal 	   ::=    	NumericLiteral | StringLiteral
-    token Literal        { [ <NumericLiteral> | <StringLiteral> ] :: };
+    token Literal        { [ <NumericLiteral> | <StringLiteral> ] };
 
-##[86]    	NumericLiteral 	   ::=    	IntegerLiteral | DecimalLiteral | DoubleLiteral
     token NumericLiteral { <DoubleLiteral> | <DecimalLiteral> | <IntegerLiteral> };
 
-##[87]    	VarRef 	   ::=    	"$" VarName
     token VarRef         { '$' <VarName> };
-##[88]    	VarName 	   ::=    	QName
+    
     token VarName        { <QName> };
 
-##[89]    	ParenthesizedExpr 	   ::=    	"(" Expr? ")"
-    rule ParenthesizedExpr { '(' <Expr>? ')' };
+    rule  ParenthesizedExpr { '(' <Expr>? ')' };
 
 ##[90]    	ContextItemExpr 	   ::=    	"."
 ##[91]    	OrderedExpr 	   ::=    	"ordered" "{" Expr "}"
@@ -283,26 +253,21 @@ grammar XQueryGrammar {
 ##[114]    	CompTextConstructor 	   ::=    	"text" "{" Expr "}"
 ##[115]    	CompCommentConstructor 	   ::=    	"comment" "{" Expr "}"
 ##[116]    	CompPIConstructor 	   ::=    	"processing-instruction" (NCName | ("{" Expr "}")) "{" Expr? "}"
-##[117]    	SingleType 	   ::=    	AtomicType "?"?
     token SingleType { <AtomicType> '?'? };
 
-##[118]    	TypeDeclaration 	   ::=    	"as" SequenceType
-    rule TypeDeclaration { 'as' <SequenceType> };
+    rule  TypeDeclaration { 'as' <SequenceType> };
 
-##[119]    	SequenceType 	   ::=    	("empty-sequence" "(" ")")
-##| (ItemType OccurrenceIndicator?)
-    rule SequenceType {
+    rule  SequenceType {
         'empty-sequence' '(' ')'
         | <ItemType> <OccurrenceIndicator>?
     };
-##[120]    	OccurrenceIndicator 	   ::=    	"?" | "*" | "+" 	/* xgs: occurrence-indicators */
+    
     token OccurrenceIndicator { '?' | '*' | '+' };
 
 ##[121]    	ItemType 	   ::=    	KindTest | ("item" "(" ")") | AtomicType
     #rule ItemType { <KindTest> | 'item' '(' ')' | <AtomicType> };
     rule ItemType { 'item' '(' ')' | <AtomicType> };
 
-##[122]    	AtomicType 	   ::=    	QName
     token AtomicType { <QName> };
 
 ##[123]    	KindTest 	   ::=    	DocumentTest
@@ -326,19 +291,12 @@ grammar XQueryGrammar {
 ##[133]    	ElementTest 	   ::=    	"element" "(" (ElementNameOrWildcard ("," TypeName "?"?)?)? ")"
 ##[134]    	ElementNameOrWildcard 	   ::=    	ElementName | "*"
 ##[135]    	SchemaElementTest 	   ::=    	"schema-element" "(" ElementDeclaration ")"
-##[136]    	ElementDeclaration 	   ::=    	ElementName
-    token ElementDeclaration { <QName> };
-##[137]    	AttributeName 	   ::=    	QName
+    token ElementDeclaration { <ElementName> };
     token AttributeName  { <QName> };
-##[138]    	ElementName 	   ::=    	QName
     token ElementName    { <QName> };
-##[139]    	TypeName 	   ::=    	QName
     token TypeName       { <QName> };
 
-##[140]    	URILiteral 	   ::=    	StringLiteral
     token URILiteral     { <StringLiteral> };
-
-
 
     token IntegerLiteral { \d+ };
     token DecimalLiteral { '.' \d+ | \d+ '.' \d* };
@@ -370,14 +328,12 @@ grammar XQueryGrammar {
         [ \w | '-']+
     };
 #[156]    	S 	   ::=    	[http://www.w3.org/TR/REC-xml#NT-S] XML 	/* xgs: xml-version */
+    token S { \h | \v };
+
 #[157]    	Char 	   ::=    	[http://www.w3.org/TR/REC-xml#NT-Char] XML 	/* xgs: xml-version */
 
-#The following symbols are used only in the definition of terminal symbols; they are not terminal symbols in the grammar of A.1 EBNF.
-#[158]    	Digits 	   ::=    	[0-9]+
-#[159]    	CommentContents 	   ::=    	(Char+ - (Char* ('(:' | ':)') Char*))
     token CommentContents { .*? <before '(:' | ':)'> };
 
-    token S { \h | \v };
     token ws_all { <.S> | <.Comment> };
 
     token ws { 
