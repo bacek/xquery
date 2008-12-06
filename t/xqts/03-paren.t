@@ -8,7 +8,7 @@ xqts(
     count    => 20,
     dirname  => "XQTS/Queries/XQuery/Expressions/PrimaryExpr/ParenExpr/",
     filemask => "Parenexpr-%d.xq",
-    todo     => (15..18, 20),
+    todo     => (11, 18, 20), # 11 is failing
 );
 
 # vim: ft=perl6
