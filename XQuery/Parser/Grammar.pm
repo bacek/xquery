@@ -78,13 +78,18 @@ grammar XQueryGrammar {
 ##| OrExpr
     rule ExprSingle { 
         | <FLWORExpr>
-##| QuantifiedExpr
-##| TypeswitchExpr
+        | <QuantifiedExpr>
+        | <TypeswitchExpr>
         | <IfExpr>
         | <OrExpr> 
     };
 
-    rule FLWORExpr { [ <ForClause> | <LetClause> ]+ <WhereClause>? <OrderByClause>? 'return' <ExprSingle> };
+    #rule FLWORExpr { [ <ForClause> | <LetClause> ]+ <WhereClause>? <OrderByClause>? 'return' <ExprSingle> };
+    rule FLWORExpr { 
+        [ <ForClause> | <LetClause> ]+ <commit>
+        <OrderByClause>? 
+        'return' <ExprSingle> 
+    };
 
 ##[34]    	ForClause 	   ::=    	"for" "$" VarName TypeDeclaration? PositionalVar? "in" ExprSingle ("," "$" VarName TypeDeclaration? PositionalVar? "in" ExprSingle)*
     rule ForClause { 
@@ -104,7 +109,8 @@ grammar XQueryGrammar {
 
     rule WhereClause { 'where' <ExprSingle> };
 
-    rule OrderByClause { [ [ 'order' 'by' ] | ['stable' 'order' 'by' ] ] <OrderSpecList> };
+    rule OrderByClause { 'order' 'by' <OrderSpecList> };
+    #rule OrderByClause { [ [ 'order' 'by' ] | ['stable' 'order' 'by' ] ] <OrderSpecList> };
 
     rule OrderSpecList { <OrderSpec> [ ',' <OrderSpec> ]* };
 
@@ -480,9 +486,9 @@ grammar XQueryGrammar {
                 | <PredefinedEntityRef>
                 | <CharRef>
                 | <EscapeQuot>
-                | <-["&]>*? 
+                | <-["&]>
                 #| .*? <before '"'>
-            ]
+            ]*
           '"' 
 
         | '\'' 
@@ -490,9 +496,9 @@ grammar XQueryGrammar {
                 | <PredefinedEntityRef>
                 | <CharRef>
                 | <EscapeApos>
-                | <-[\'&]>*?
+                | <-[\'&]>
                 #| <-[\'&]>*? <before '\''>
-            ]
+            ]*
           '\'' 
     };
 
