@@ -357,7 +357,7 @@ grammar XQueryGrammar {
 
 ##[102]    	CommonContent 	   ::=    	PredefinedEntityRef | CharRef | "{{" | "}}" | EnclosedExpr
     rule CommonContent {
-        #| <PredefinedEntityRef>
+        | <PredefinedEntityRef>
         #| <CharRef>
         | '{{'
         | '}}'
@@ -460,8 +460,25 @@ grammar XQueryGrammar {
     
 ##[144]    	StringLiteral 	   ::=    	('"' (PredefinedEntityRef | CharRef | EscapeQuot | [^"&])* '"') | ("'" (PredefinedEntityRef | CharRef | EscapeApos | [^'&])* "'") 	/* ws: explicit */
     token StringLiteral  { 
-        | '"' .*? <before '"'> '"' 
-        | <[\']> <-[\']>* <[\']> 
+        | '"' 
+            [
+                | <PredefinedEntityRef>
+                | <CharRef>
+                | <EscapeQuot>
+                | <-["&]>*? 
+                #| .*? <before '"'>
+            ]
+          '"' 
+
+        | '\'' 
+            [
+                | <PredefinedEntityRef>
+                | <CharRef>
+                | <EscapeApos>
+                | <-[\'&]>*?
+                #| <-[\'&]>*? <before '\''>
+            ]
+          '\'' 
     };
 
     token PredefinedEntityRef {
@@ -484,6 +501,9 @@ grammar XQueryGrammar {
     token Comment         { '(:' <CommentContents>? ':)' <cut> }
 #[152]    	PITarget 	   ::=    	[http://www.w3.org/TR/REC-xml#NT-PITarget] XML 	/* xgs: xml-version */
 #[153]    	CharRef 	   ::=    	[http://www.w3.org/TR/REC-xml#NT-CharRef] XML 	/* xgs: xml-version */
+    token CharRef {
+        '&#' \d+ ';'
+    };
 #[154]    	QName 	   ::=    	[http://www.w3.org/TR/REC-xml-names/#NT-QName] Names 	/* xgs: xml-version */
     # LTM
     token QName {
