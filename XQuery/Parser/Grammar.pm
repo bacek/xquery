@@ -198,6 +198,7 @@ grammar XQueryGrammar {
     # LTM
     rule ForwardAxis {
         [
+            | 'child'
             | 'descendant-or-self'
             | 'descendant'
             | 'attribute'
