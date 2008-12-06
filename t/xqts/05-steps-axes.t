@@ -2,6 +2,8 @@ use Test;
 use TestUtil;
 use XQuery::Parser::Grammar;
 
+plan 73;
+
 xqts(
     count     => 88,
     dirname   => 'XQTS/Queries/XQuery/Expressions/PathExpr/Steps/Axes/',
