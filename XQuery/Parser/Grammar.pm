@@ -159,13 +159,35 @@ grammar XQueryGrammar {
 ##[65]    	ExtensionExpr 	   ::=    	Pragma+ "{" Expr? "}"
 ##[66]    	Pragma 	   ::=    	"(#" S? QName (S PragmaContents)? "#)" 	/* ws: explicit */
 ##[67]    	PragmaContents 	   ::=    	(Char* - (Char* '#)' Char*))
+
 ##[68]    	PathExpr 	   ::=    	("/" RelativePathExpr?)
 ##| ("//" RelativePathExpr)
 ##| RelativePathExpr 	/* xgs: leading-lone-slash */
+    # LTM
+    rule PathExpr {
+        | '//' <RelativePathExpr>
+        | '/' <RelativePathExpr>
+        | <RelativePathExpr>
+    };
+
 ##[69]    	RelativePathExpr 	   ::=    	StepExpr (("/" | "//") StepExpr)*
-##[70]    	StepExpr 	   ::=    	FilterExpr | AxisStep
-##[71]    	AxisStep 	   ::=    	(ReverseStep | ForwardStep) PredicateList
-##[72]    	ForwardStep 	   ::=    	(ForwardAxis NodeTest) | AbbrevForwardStep
+    # LTM
+    rule RelativePathExpr {
+        <StepExpr> [ [ '//' | '/' ] <StepExpr> ]*
+    };
+
+    rule StepExpr {
+        <FilterExpr> | <AxisStep>
+    };
+
+    rule AxisStep {
+        [ <ReverseStep> | <ForwardStep> ] <PredicateList>
+    };
+
+    rule ForwardStep {
+        [ <ForwardAxis> <NodeTest> ] | <AbbrevForwardStep>
+    };
+
 ##[73]    	ForwardAxis 	   ::=    	("child" "::")
 ##| ("descendant" "::")
 ##| ("attribute" "::")
@@ -173,7 +195,23 @@ grammar XQueryGrammar {
 ##| ("descendant-or-self" "::")
 ##| ("following-sibling" "::")
 ##| ("following" "::")
-##[74]    	AbbrevForwardStep 	   ::=    	"@"? NodeTest
+    # LTM
+    rule ForwardAxis {
+        [
+            | 'descendant-or-self'
+            | 'descendant'
+            | 'attribute'
+            | 'self'
+            | 'following-sibling'
+            | 'following'
+        ]
+        '::'
+    };
+
+    rule AbbrevReverseStep {
+        '@'? <NodeTest>
+    };
+
 ##[75]    	ReverseStep 	   ::=    	(ReverseAxis NodeTest) | AbbrevReverseStep
 ##[76]    	ReverseAxis 	   ::=    	("parent" "::")
 ##| ("ancestor" "::")
@@ -195,7 +233,7 @@ grammar XQueryGrammar {
         | <VarRef>
         | <ParenthesizedExpr>
         # | <ContextItemExpr>
-        #| <FunctionCall>
+        | <FunctionCall>
         #| <OrderedExpr>
         #| <UnorderedExpr>
         #| <Constructor>
@@ -216,6 +254,10 @@ grammar XQueryGrammar {
 ##[92]    	UnorderedExpr 	   ::=    	"unordered" "{" Expr "}"
 ##[93]    	FunctionCall 	   ::=    	QName "(" (ExprSingle ("," ExprSingle)*)? ")" 	/* xgs: reserved-function-names */
 ##				/* gn: parens */
+    rule  FunctionCall {
+        <QName> '(' [ <ExprSingle> [ ',' <ExprSingle>]* ]? ')'
+    };
+
 ##[94]    	Constructor 	   ::=    	DirectConstructor
 ##| ComputedConstructor
 ##[95]    	DirectConstructor 	   ::=    	DirElemConstructor
@@ -317,10 +359,11 @@ grammar XQueryGrammar {
 #[152]    	PITarget 	   ::=    	[http://www.w3.org/TR/REC-xml#NT-PITarget] XML 	/* xgs: xml-version */
 #[153]    	CharRef 	   ::=    	[http://www.w3.org/TR/REC-xml#NT-CharRef] XML 	/* xgs: xml-version */
 #[154]    	QName 	   ::=    	[http://www.w3.org/TR/REC-xml-names/#NT-QName] Names 	/* xgs: xml-version */
+    # LTM
     token QName {
         [
-            | <NCName>
             | <NCName> ':' <NCName>
+            | <NCName>
         ]
     };
 #[155]    	NCName 	   ::=    	[http://www.w3.org/TR/REC-xml-names/#NT-NCName] Names 	/* xgs: xml-version */
