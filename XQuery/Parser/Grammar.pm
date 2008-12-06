@@ -113,8 +113,25 @@ grammar XQueryGrammar {
     rule OrderModifier { [ 'ascending' | 'descending' ]? [ 'empty' [ 'greatest' | 'least' ] ]? [ 'collation' <URILiteral>]? };
 
 ##[42]    	QuantifiedExpr 	   ::=    	("some" | "every") "$" VarName TypeDeclaration? "in" ExprSingle ("," "$" VarName TypeDeclaration? "in" ExprSingle)* "satisfies" ExprSingle
+    rule QuantifiedExpr {
+        [ 'some' | 'every' ] '$' <VarName> <TypeDeclaration>? 'in' <ExprSingle>
+            [ ',' '$' <VarName> <TypeDeclaration>? 'in' <ExprSingle>]*
+        'satisfies' <ExprSingle>
+    };
+
 ##[43]    	TypeswitchExpr 	   ::=    	"typeswitch" "(" Expr ")" CaseClause+ "default" ("$" VarName)? "return" ExprSingle
+    rule TypeswitchExpr {
+        'typeswitch' '(' <Expr> ')'
+            <CaseClause>+
+            'default' [ '$' <VarName> ]?
+            'return' <ExprSingle>
+    };
+
 ##[44]    	CaseClause 	   ::=    	"case" ("$" VarName "as")? SequenceType "return" ExprSingle
+    rule CaseClause {
+        'case' [ '$' <VarName> 'as' ]? <SequenceType> 'return' <ExprSingle>
+    };
+
     rule IfExpr { 'if' '(' <Expr> ')' 'then' <ExprSingle> 'else' <ExprSingle> };
 
     rule OrExpr { <AndExpr> [ 'or' <AndExpr>]* };
@@ -338,7 +355,7 @@ grammar XQueryGrammar {
 
 ##[99]    	QuotAttrValueContent 	   ::=    	QuotAttrContentChar
 ##| CommonContent
-    rule QuotAttrValueContent { <QuotAttrContentChar> | <CommonContent> };
+    rule QuotAttrValueContent { <CommonContent> | <QuotAttrContentChar> };
 
 ##[100]    	AposAttrValueContent 	   ::=    	AposAttrContentChar
 ##| CommonContent
@@ -358,7 +375,7 @@ grammar XQueryGrammar {
 ##[102]    	CommonContent 	   ::=    	PredefinedEntityRef | CharRef | "{{" | "}}" | EnclosedExpr
     rule CommonContent {
         | <PredefinedEntityRef>
-        #| <CharRef>
+        | <CharRef>
         | '{{'
         | '}}'
         | <EnclosedExpr>
@@ -429,10 +446,8 @@ grammar XQueryGrammar {
 ##[129]    	AttributeTest 	   ::=    	"attribute" "(" (AttribNameOrWildcard ("," TypeName)?)? ")"
     rule AttributeTest { 'attribute' '(' [ AttribNameOrWildcard [ ',' <TypeName> ]? ]? ')' };
 
-##[130]    	AttribNameOrWildcard 	   ::=    	AttributeName | "*"
     token AttribNameOrWildcard { <AttributeName> | '*' };
 
-##[131]    	SchemaAttributeTest 	   ::=    	"schema-attribute" "(" AttributeDeclaration ")"
     rule SchemaAttributeTest { 'schema-attribute' '(' <AttributeDeclaration> ')' };
 
     rule AttributeDeclaration { <AttributeName> };
@@ -492,7 +507,7 @@ grammar XQueryGrammar {
 #[148]    	ElementContentChar 	   ::=    	Char - [{}<&]
     token ElementContentChar { <-[{}<&]> };
 #[149]    	QuotAttrContentChar 	   ::=    	Char - ["{}<&]
-    token QuotAttrValueContent { <-["{}<&]> };
+    token QuotAttrContentChar { <-["{}<&]> };
 #[150]    	AposAttrContentChar 	   ::=    	Char - ['{}<&]
     token AposAttrContentChar { <-[\'{}<&]> };
 #[151]    	Comment 	   ::=    	"(:" (CommentContents | Comment)* ":)" 	/* ws: explicit */
