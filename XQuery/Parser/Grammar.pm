@@ -146,7 +146,7 @@ grammar XQueryGrammar {
 
 ##[59]    	ValueExpr 	   ::=    	ValidateExpr | PathExpr | ExtensionExpr
     # XXX Shortcut for non-implemented features
-    rule ValueExpr { <PrimaryExpr> };
+    rule ValueExpr { <PathExpr> };
 
     token GeneralComp { '=' | '!=' | '<' | '<=' | '>' | '>=' };
 
@@ -208,7 +208,7 @@ grammar XQueryGrammar {
         '::'
     };
 
-    rule AbbrevReverseStep {
+    rule AbbrevForwardStep {
         '@'? <NodeTest>
     };
 
@@ -217,6 +217,7 @@ grammar XQueryGrammar {
         | <ReverseAxis> <NodeTest>
         | <AbbrevReverseStep>
     };
+
 ##[76]    	ReverseAxis 	   ::=    	("parent" "::")
 ##| ("ancestor" "::")
 ##| ("preceding-sibling" "::")
@@ -354,8 +355,7 @@ grammar XQueryGrammar {
     token OccurrenceIndicator { '?' | '*' | '+' };
 
 ##[121]    	ItemType 	   ::=    	KindTest | ("item" "(" ")") | AtomicType
-    #rule ItemType { <KindTest> | 'item' '(' ')' | <AtomicType> };
-    rule ItemType { 'item' '(' ')' | <AtomicType> };
+    rule ItemType { <KindTest> | 'item' '(' ')' | <AtomicType> };
 
     token AtomicType { <QName> };
 
@@ -368,18 +368,46 @@ grammar XQueryGrammar {
 ##| CommentTest
 ##| TextTest
 ##| AnyKindTest
-##[124]    	AnyKindTest 	   ::=    	"node" "(" ")"
-##[125]    	DocumentTest 	   ::=    	"document-node" "(" (ElementTest | SchemaElementTest)? ")"
-##[126]    	TextTest 	   ::=    	"text" "(" ")"
-##[127]    	CommentTest 	   ::=    	"comment" "(" ")"
-##[128]    	PITest 	   ::=    	"processing-instruction" "(" (NCName | StringLiteral)? ")"
+    rule KindTest {
+        | <DocumentTest>
+        | <ElementTest>
+        | <AttributeTest>
+        | <SchemaElementTest>
+        | <SchemaAttributeTest>
+        | <PITest>
+        | <CommentTest>
+        | <TextTest>
+        | <AnyKindTest>
+    };
+
+    rule AnyKindTest { 'node' '(' ')' };
+    rule DocumentTest { 
+        'document-node' '(' [ <ElementTest> | <SchemaElementTest> ]? ')'
+    };
+    rule TextTest { 'text' '(' ')' };
+    rule CommentTest { 'comment' '(' ')' };
+    rule PITest { 'processing-instruction' '(' [ <NCName> | <StringLiteral> ]? ')' };
 ##[129]    	AttributeTest 	   ::=    	"attribute" "(" (AttribNameOrWildcard ("," TypeName)?)? ")"
+    rule AttributeTest { 'attribute' '(' [ AttribNameOrWildcard [ ',' <TypeName> ]? ]? ')' };
+
 ##[130]    	AttribNameOrWildcard 	   ::=    	AttributeName | "*"
+    token AttribNameOrWildcard { <AttributeName> | '*' };
+
 ##[131]    	SchemaAttributeTest 	   ::=    	"schema-attribute" "(" AttributeDeclaration ")"
-##[132]    	AttributeDeclaration 	   ::=    	AttributeName
+    rule SchemaAttributeTest { 'schema-attribute' '(' <AttributeDeclaration> ')' };
+
+    rule AttributeDeclaration { <AttributeName> };
+
 ##[133]    	ElementTest 	   ::=    	"element" "(" (ElementNameOrWildcard ("," TypeName "?"?)?)? ")"
-##[134]    	ElementNameOrWildcard 	   ::=    	ElementName | "*"
-##[135]    	SchemaElementTest 	   ::=    	"schema-element" "(" ElementDeclaration ")"
+    rule ElementTest {
+        'element' '(' [ <ElementNameOrWildcard> [ ',' <TypeName> '?'? ]? ]? ')'
+    };
+   
+    rule ElementNameOrWildcard { <ElementName> | '*' };
+
+    rule SchemaElementTest { 'schema-element' '(' <ElementDeclaration> ')' };
+
+
     token ElementDeclaration { <ElementName> };
     token AttributeName  { <QName> };
     token ElementName    { <QName> };
