@@ -213,29 +213,69 @@ grammar XQueryGrammar {
     };
 
 ##[75]    	ReverseStep 	   ::=    	(ReverseAxis NodeTest) | AbbrevReverseStep
+    rule ReverseStep {
+        | <ReverseAxis> <NodeTest>
+        | <AbbrevReverseStep>
+    };
 ##[76]    	ReverseAxis 	   ::=    	("parent" "::")
 ##| ("ancestor" "::")
 ##| ("preceding-sibling" "::")
 ##| ("preceding" "::")
 ##| ("ancestor-or-self" "::")
-##[77]    	AbbrevReverseStep 	   ::=    	".."
+    # LTM
+    rule ReverseAxis {
+        [
+            | 'parent'
+            | 'ancestor-or-self'
+            | 'ancestor'
+            | 'preceding-sibling'
+            | 'preceding'
+        ]
+        '::'
+    };
+    
+    rule AbbrevReverseStep { '..' };
+
 ##[78]    	NodeTest 	   ::=    	KindTest | NameTest
+    rule NodeTest {
+        <KindTest> | <NameTest>
+    };
+
 ##[79]    	NameTest 	   ::=    	QName | Wildcard
+    rule NameTest {
+        <QName> | <Wildcard>
+    };
+
 ##[80]    	Wildcard 	   ::=    	"*"
 ##| (NCName ":" "*")
 ##| ("*" ":" NCName) 	/* ws: explicit */
-##[81]    	FilterExpr 	   ::=    	PrimaryExpr PredicateList
-##[82]    	PredicateList 	   ::=    	Predicate*
-##[83]    	Predicate 	   ::=    	"[" Expr "]"
+    # LTM
+    token Wildcard {
+        | '*' ':' <NCName>
+        | <NCName> ':' '*'
+        | '*'
+    };
+
+    rule FilterExpr {
+        <PrimaryExpr> <PredicateList>
+    };
+    
+    rule PredicateList {
+        <Predicate>*
+    };
+
+    rule Predicate {
+        '[' <Expr> ']'
+    };
 ##[84]    	PrimaryExpr 	   ::=    	Literal | VarRef | ParenthesizedExpr | ContextItemExpr | FunctionCall | OrderedExpr | UnorderedExpr | Constructor
     token PrimaryExpr {
         | <Literal>
         | <VarRef>
         | <ParenthesizedExpr>
-        # | <ContextItemExpr>
+        | <ContextItemExpr>
         | <FunctionCall>
-        #| <OrderedExpr>
-        #| <UnorderedExpr>
+        | <OrderedExpr>
+        | <UnorderedExpr>
         #| <Constructor>
     };
 
@@ -249,9 +289,16 @@ grammar XQueryGrammar {
 
     rule  ParenthesizedExpr { '(' <Expr>? ')' };
 
-##[90]    	ContextItemExpr 	   ::=    	"."
-##[91]    	OrderedExpr 	   ::=    	"ordered" "{" Expr "}"
-##[92]    	UnorderedExpr 	   ::=    	"unordered" "{" Expr "}"
+    rule ContextItemExpr { '.' };
+
+    rule OrderedExpr {
+        'ordered' '{' <Expr> '}'
+    };
+
+    rule UnorderedExpr {
+        'unordered' '{' <Expr> '}'
+    };
+
 ##[93]    	FunctionCall 	   ::=    	QName "(" (ExprSingle ("," ExprSingle)*)? ")" 	/* xgs: reserved-function-names */
 ##				/* gn: parens */
     rule  FunctionCall {
