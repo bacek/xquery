@@ -1,7 +1,7 @@
 use Test;
 use XQuery::Parser::Grammar;
 
-plan 24;
+plan 32;
 
 my $query = 'declare variable $foo external';
 ok($query ~~ / <XQueryGrammar::VarDecl> /, 'VarDecl parsed');
@@ -52,4 +52,23 @@ is("foo", ~$/<XQueryGrammar::MainModule><Prolog><VarDecl>[0]<QName>, '..still co
 
 ok($query ~~ / <XQueryGrammar::Module> /, 'VarDecl parsed in mixed query with Module');
 is("foo", ~$/<XQueryGrammar::Module><MainModule><Prolog><VarDecl>[0]<QName>, '..still correctly');
+
+$query = '
+(: insert-start :)
+declare variable $input-context external;
+(: insert-end :)
+"test"';
+
+ok($query ~~ / <XQueryGrammar::VarDecl> /, 'VarDecl parsed in Literals query with comments');
+is("input-context", ~$/<XQueryGrammar::VarDecl><QName>, '..still correctly');
+
+ok($query ~~ / <XQueryGrammar::Prolog> /, 'VarDecl parsed in Literals query in Prolog');
+say $/.perl;
+is("input-context", ~$/<XQueryGrammar::Prolog><VarDecl>[0]<QName>, '..still correctly');
+
+ok($query ~~ / <XQueryGrammar::MainModule> /, 'VarDecl parsed in Literals query in MainModule');
+is("input-context", ~$/<XQueryGrammar::MainModule><Prolog><VarDecl>[0]<QName>, '..still correctly');
+
+ok($query ~~ / <XQueryGrammar::Module> /, 'VarDecl parsed in Literals query with Module');
+is("input-context", ~$/<XQueryGrammar::Module><MainModule><Prolog><VarDecl>[0]<QName>, '..still correctly');
 
