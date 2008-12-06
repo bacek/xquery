@@ -4,7 +4,7 @@ use v6;
 grammar XQueryGrammar {
 
     rule TOP { 
-        <Module>
+        <Module> $
     };
 
 #[1]    	Module 	   ::=    	VersionDecl? (LibraryModule | MainModule)
@@ -15,7 +15,7 @@ grammar XQueryGrammar {
 
 #[3]    	MainModule 	   ::=    	Prolog QueryBody
 #rule  MainModule     { <Prolog> <QueryBody> };
-    rule  MainModule     { <Prolog> <QueryBody> };
+    rule  MainModule     { <Prolog> <commit> <QueryBody> };
 
 ##[4]    	LibraryModule 	   ::=    	ModuleDecl Prolog
 ##[5]    	ModuleDecl 	   ::=    	"module" "namespace" NCName "=" URILiteral Separator
