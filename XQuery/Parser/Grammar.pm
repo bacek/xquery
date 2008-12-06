@@ -200,16 +200,20 @@ grammar XQueryGrammar {
         <StepExpr> [ [ '//' | '/' ] <StepExpr> ]*
     };
 
+    # LTM
     rule StepExpr {
-        <FilterExpr> | <AxisStep>
+        | <AxisStep>
+        | <FilterExpr> 
     };
 
     rule AxisStep {
         [ <ReverseStep> | <ForwardStep> ] <PredicateList>
     };
 
+    # LTM
     rule ForwardStep {
-        [ <ForwardAxis> <NodeTest> ] | <AbbrevForwardStep>
+        | <AbbrevForwardStep>
+        | [ <ForwardAxis> <NodeTest> ] 
     };
 
 ##[73]    	ForwardAxis 	   ::=    	("child" "::")
@@ -238,8 +242,10 @@ grammar XQueryGrammar {
     };
 
 ##[75]    	ReverseStep 	   ::=    	(ReverseAxis NodeTest) | AbbrevReverseStep
+    # LTM
     rule ReverseStep {
-        [ <ReverseAxis> <NodeTest> ] | <AbbrevReverseStep>
+        | <AbbrevReverseStep>
+        | [ <ReverseAxis> <NodeTest> ] 
     };
 
 ##[76]    	ReverseAxis 	   ::=    	("parent" "::")
