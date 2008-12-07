@@ -86,31 +86,30 @@ grammar XQueryGrammar {
 
     #rule FLWORExpr { [ <ForClause> | <LetClause> ]+ <WhereClause>? <OrderByClause>? 'return' <ExprSingle> };
     rule FLWORExpr { 
-        [ <ForClause> | <LetClause> ]+ <commit>
+        [ <ForClause> | <LetClause> ]+
+        <WhereClause>?
         <OrderByClause>? 
         'return' <ExprSingle> 
     };
 
 ##[34]    	ForClause 	   ::=    	"for" "$" VarName TypeDeclaration? PositionalVar? "in" ExprSingle ("," "$" VarName TypeDeclaration? PositionalVar? "in" ExprSingle)*
     rule ForClause { 
-        'for' '$' <VarName> 'in' <ExprSingle>
+        'for' '$' <VarName> <TypeDeclaration>? <PositionalVar>? 'in' <ExprSingle>
+            [ ',' '$' <VarName> <TypeDeclaration>? <PositionalVar>? 'in' <ExprSingle> ]*
     };
-            #'for' '$' <VarName> <TypeDeclaration>? <PositionalVar>? 'in' <ExprSingle>
-            #[ ',' '$' <VarName> <TypeDeclaration>? <PositionalVar>? 'in' <ExprSingle> ]*
     
     rule PositionalVar { 'at' '$' <VarName> };
 
 ##[36]    	LetClause 	   ::=    	"let" "$" VarName TypeDeclaration? ":=" ExprSingle ("," "$" VarName TypeDeclaration? ":=" ExprSingle)*
     rule LetClause     { 
-        'let' '$' <VarName> ':=' <ExprSingle> 
+         'let' '$' <VarName> <TypeDeclaration>? ':=' <ExprSingle> 
+            [',' '$' <VarName> <TypeDeclaration>? ':=' <ExprSingle>]* 
     };
-            #'let' '$' <VarName> <TypeDeclaration>? ':=' <ExprSingle> 
-            #[',' '$' <VarName> <TypeDeclaration>? ':=' <ExprSingle>]* 
 
     rule WhereClause { 'where' <ExprSingle> };
 
-    rule OrderByClause { 'order' 'by' <OrderSpecList> };
-    #rule OrderByClause { [ [ 'order' 'by' ] | ['stable' 'order' 'by' ] ] <OrderSpecList> };
+    #rule OrderByClause { 'order' 'by' <OrderSpecList> };
+    rule OrderByClause { [ [ 'order' 'by' ] | ['stable' 'order' 'by' ] ] <OrderSpecList> };
 
     rule OrderSpecList { <OrderSpec> [ ',' <OrderSpec> ]* };
 
