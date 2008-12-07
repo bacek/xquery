@@ -7,8 +7,7 @@ SOURCES= \
 		 XQuery/Core/Nodes.pm \
 		 XQuery/Core.pm \
 		 XQuery.pm \
-		 TestUtil.pm \
-		 Test.pm
+		 TestUtil.pm
 
 PIRS=$(SOURCES:.pm=.pir)
 
