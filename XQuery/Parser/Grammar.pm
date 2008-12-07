@@ -202,8 +202,8 @@ grammar XQueryGrammar {
 
     # LTM
     rule StepExpr {
-        | <AxisStep>
         | <FilterExpr> 
+        | <AxisStep>
     };
 
     rule AxisStep {
@@ -212,8 +212,8 @@ grammar XQueryGrammar {
 
     # LTM
     rule ForwardStep {
+        | <ForwardAxis> <NodeTest>
         | <AbbrevForwardStep>
-        | [ <ForwardAxis> <NodeTest> ] 
     };
 
 ##[73]    	ForwardAxis 	   ::=    	("child" "::")
@@ -320,7 +320,8 @@ grammar XQueryGrammar {
 
     rule  ParenthesizedExpr { '(' <Expr>? ')' };
 
-    rule ContextItemExpr { '.' };
+    # Don't mix ContextItem and '..'
+    rule ContextItemExpr { '.' <!before '.'> };
 
     rule OrderedExpr {
         'ordered' '{' <Expr> '}'
