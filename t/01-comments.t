@@ -23,4 +23,4 @@ blah
 
 ok( $q ~~ / <XQueryGrammar::ws> /, 'ws parsed');
 my $ws = ~$/;
-ok ( ($ws !~~ / FOO /), 'Last part not in ws');
+ok ( ($ws !~~ m/ 'FOO' /), 'Last part not in ws');
