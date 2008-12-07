@@ -1,14 +1,17 @@
 use Test;
+use TestUtil;
 use XQuery::Parser::Grammar;
 
 plan 31;
 
+xqts(
+    count     => 31,
+    dirname   => 'XQTS/Queries/XQuery/Expressions/FLWORExpr/ForExpr/',
+    filemask  => 'ForExpr%03d.xq',
 
-for (1..31) -> $test {
-    my $filename = sprintf("XQTS/Queries/XQuery/Expressions/FLWORExpr/ForExpr/ForExpr%03d.xq", $test);
-    my $content = slurp $filename;
-    my $res = $content ~~ / <XQueryGrammar::FLWORExpr> /;
-    ok(?$res, "Test " ~ $test);
-}
+#    expect_fail => ( 12, ),
+#    todo      => ( 19, 85..88 ), # 19 is failing...
+#    skip      => ( 22, 24, 25, 26, 28, 29, 38, 39, 40, 42, 50..54, ),
+);
 
 # vim: ft=perl6

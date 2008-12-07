@@ -63,7 +63,6 @@ ok($query ~~ / <XQueryGrammar::VarDecl> /, 'VarDecl parsed in Literals query wit
 is("input-context", ~$/<XQueryGrammar::VarDecl><QName>, '..still correctly');
 
 ok($query ~~ / <XQueryGrammar::Prolog> /, 'VarDecl parsed in Literals query in Prolog');
-say $/.perl;
 is("input-context", ~$/<XQueryGrammar::Prolog><VarDecl>[0]<QName>, '..still correctly');
 
 ok($query ~~ / <XQueryGrammar::MainModule> /, 'VarDecl parsed in Literals query in MainModule');
