@@ -1,14 +1,25 @@
-all: XQuery/Parser/Grammar.pir TestUtil.pir Test.pir
+PARROT_DIR=/home/bacek/src/parrot
+RAKUDO=$(PARROT_DIR)/parrot $(PARROT_DIR)/languages/perl6/perl6.pbc
 
-XQuery/Parser/Grammar.pir: XQuery/Parser/Grammar.pm
-	perl6 --target=pir --output=XQuery/Parser/Grammar.pir XQuery/Parser/Grammar.pm
+SOURCES= \
+		 XQuery/Parser/Grammar.pm \
+		 XQuery/Parser.pm \
+		 XQuery/Core/Nodes.pm \
+		 XQuery/Core.pm \
+		 XQuery.pm \
+		 TestUtil.pm \
+		 Test.pm
 
-Test.pir: Test.pm
-	perl6 --target=pir --output=Test.pir Test.pm
+PIRS=$(SOURCES:.pm=.pir)
 
-TestUtil.pir: TestUtil.pm
-	perl6 --target=pir --output=TestUtil.pir TestUtil.pm
+all: $(PIRS)
+
+%.pir: %.pm
+	$(PARROT_DIR)/parrot $(PARROT_DIR)/languages/perl6/perl6.pbc --target=pir $<  > $@
+
+clean:
+	rm -f $(PIRS)
 
 test: all
-	prove -e perl6 --timer -r t
+	prove -e $(PARROT_DIR)/languages/perl6/perl6 -r --timer t/
 	
