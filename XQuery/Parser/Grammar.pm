@@ -541,7 +541,7 @@ grammar XQueryGrammar {
     };
 #[155]    	NCName 	   ::=    	[http://www.w3.org/TR/REC-xml-names/#NT-NCName] Names 	/* xgs: xml-version */
     token NCName {
-        [ \w | '-']+
+        <alpha> [ \w | '-']*
     };
 #[156]    	S 	   ::=    	[http://www.w3.org/TR/REC-xml#NT-S] XML 	/* xgs: xml-version */
     token S { \h | \v };
