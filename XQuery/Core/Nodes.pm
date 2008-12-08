@@ -11,7 +11,7 @@ class XQuery::Core::Node {
     method left  { };
 
     method dump ( $level = 0) {
-        say self;
+        say '  ' x $level, self;
         if (self.right) {
             self.right.dump(1+$level);
         }
@@ -167,6 +167,14 @@ enum XQuery::Core::Axis<
 #| ("*" ":" NCName)
 #[55]    	PrimaryExpr 	   ::=    	Literal | VarRef | ParenthesizedExpr | FunctionCall | OrderedExpr | UnorderedExpr | Constructor
 #[56]    	Literal 	   ::=    	NumericLiteral | StringLiteral
+class XQuery::Core::Literal is XQuery::Core::Node {
+    has $.value;
+
+    method Str {
+        'Literal[' ~ $.value ~ ']';
+    }
+};
+
 #[57]    	NumericLiteral 	   ::=    	IntegerLiteral | DecimalLiteral | DoubleLiteral
 #[58]    	VarRef 	   ::=    	"$" VarName
 #[59]    	VarName 	   ::=    	QName
