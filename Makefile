@@ -16,7 +16,7 @@ PIRS=$(SOURCES:.pm=.pir)
 all: $(PIRS)
 
 %.pir: %.pm $(PERL6)
-	$(PARROT_DIR)/parrot $(PARROT_DIR)/languages/perl6/perl6.pbc --target=pir $<  > $@
+	$(PERL6) --target=pir $<  > $@
 
 clean:
 	rm -f $(PIRS)
