@@ -139,15 +139,15 @@ grammar XQueryGrammar {
 
     rule IfExpr { 'if' '(' <Expr> ')' 'then' <ExprSingle> 'else' <ExprSingle> };
 
-    rule OrExpr { <AndExpr> [ 'or' <AndExpr>]* };
+    rule OrExpr { <AndExpr> [ <.wb> 'or' <.wb> <AndExpr>]* };
 
-    rule AndExpr { <ComparisonExpr> [ 'and' <ComparisonExpr>]* };
+    rule AndExpr { <ComparisonExpr> [ <.wb> 'and' <.wb> <ComparisonExpr>]* };
 
     rule ComparisonExpr {
         <RangeExpr> [ [ <ValueComp> | <GeneralComp> | <NodeComp> ] <RangeExpr> ]?
     };
 
-    rule RangeExpr { <AdditiveExpr> [ 'to' <AdditiveExpr> ]? };
+    rule RangeExpr { <AdditiveExpr> [ <.wb> 'to' <.wb> <AdditiveExpr> ]? };
 
     rule AdditiveExpr { <MultiplicativeExpr> [ ['+' | '-'] <MultiplicativeExpr> ]* };
 
@@ -541,7 +541,7 @@ grammar XQueryGrammar {
     };
 #[155]    	NCName 	   ::=    	[http://www.w3.org/TR/REC-xml-names/#NT-NCName] Names 	/* xgs: xml-version */
     token NCName {
-        <alpha> [ \w | '-']*
+        <alpha> [ \w | '-' | '_' | '.' ]*
     };
 #[156]    	S 	   ::=    	[http://www.w3.org/TR/REC-xml#NT-S] XML 	/* xgs: xml-version */
     token S { \h | \v };
