@@ -7,8 +7,10 @@ Base class for Core
 =end pod
 
 class XQuery::Core::Node {
-    method right { ... };
-    method left  { };
+    has $.right is rw;
+    has $.left is rw;
+    method right { $.right };
+    method left  { $.left };
 
     method dump ( $level = 0) {
         say '  ' x $level, self;
@@ -62,19 +64,31 @@ class XQuery::Core::FLWORExpr is XQuery::Core::ExprSingle {
     has $.clause;
     has $.return;
     has $.left; # XXX
-
-    method right { $.clause };
-    method left  { $.return };
 };
 
-#[25]    	ForClause 	   ::=    	"for" "$" VarName TypeDeclaration? PositionalVar? "in" ExprSingle
-class XQuery::Core::ForClause is XQuery::Core::Node {
-    has $.var_name;
-    has $.type_declaration;
-    has $.positional_var;
-    has $.in;
+class XQuery::Core::ForVars is XQuery::Core::Node {
+    has $.bound_var is rw;
+    has $.positional_var is rw;
+}
 
-    method right { $.in };
+#[25]    	ForClause 	   ::=    	"for" "$" VarName TypeDeclaration? PositionalVar? "in" ExprSingle
+#  (for (for_vars (var) (var)) (in))
+class XQuery::Core::ForClause is XQuery::Core::Node {
+    has $.var_name is rw;
+    has $.type_declaration is rw;
+    has $.positional_var is rw;
+    has $.in is rw;
+
+    has $!vars is rw;
+
+    method BUILD {
+        $!vars = XQuery::Core::ForVars.new(
+            bound_var      => $.var_name,
+            positional_var => $.positional_var,
+        );
+        $!vars.right = $.in;
+        $.right = $!vars;
+    }
 };
 
 #[26]    	PositionalVar 	   ::=    	"at" "$" VarName
@@ -124,6 +138,10 @@ class XQuery::Core::IfExpr is XQuery::Core::Node {
 };
 
 #[36]    	OrExpr 	   ::=    	AndExpr ( "or" AndExpr )*
+class XQuery::Core::OrExpr is XQuery::Core::Node {
+    has @.expr is rw;
+};
+
 #[37]    	AndExpr 	   ::=    	CastableExpr ( "and" CastableExpr )*
 #[38]    	CastableExpr 	   ::=    	CastExpr ( "castable" "as" SingleType )?
 #[39]    	CastExpr 	   ::=    	ValueExpr ( "cast" "as" SingleType )?

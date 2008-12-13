@@ -139,9 +139,9 @@ grammar XQueryGrammar {
 
     rule IfExpr { 'if' '(' <Expr> ')' 'then' <ExprSingle> 'else' <ExprSingle> };
 
-    rule OrExpr { <AndExpr> [ <.wb> 'or' <.wb> <AndExpr>]* };
+    rule OrExpr { <AndExpr> [ 'or' <.wb> <AndExpr>]* };
 
-    rule AndExpr { <ComparisonExpr> [ <.wb> 'and' <.wb> <ComparisonExpr>]* };
+    rule AndExpr { <ComparisonExpr> [ 'and' <.wb> <ComparisonExpr>]* };
 
     rule ComparisonExpr {
         <RangeExpr> [ [ <ValueComp> | <GeneralComp> | <NodeComp> ] <RangeExpr> ]?
