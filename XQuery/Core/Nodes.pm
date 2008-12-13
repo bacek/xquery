@@ -143,6 +143,10 @@ class XQuery::Core::OrExpr is XQuery::Core::Node {
 };
 
 #[37]    	AndExpr 	   ::=    	CastableExpr ( "and" CastableExpr )*
+class XQuery::Core::AndExpr is XQuery::Core::Node {
+    has @.expr is rw;
+}
+
 #[38]    	CastableExpr 	   ::=    	CastExpr ( "castable" "as" SingleType )?
 #[39]    	CastExpr 	   ::=    	ValueExpr ( "cast" "as" SingleType )?
 #[40]    	ValueExpr 	   ::=    	ValidateExpr | StepExpr | ExtensionExpr

@@ -89,11 +89,29 @@ class XQuery::Core::Creator {
         $res;
     };
 
-    method create_and_expr ($and) {
+    method create_and_expr ($node, $pos = 0) {
+        return unless $node<ComparisonExpr>[$pos];
+        self.trace('create AndExpr');
+        my $res;
+        my $c = self.create_castable_expr($node<ComparisonExpr>[$pos]);
+        if 1 < +$node<ComparisonExpr> && $pos == 0 {
+            $res = XQuery::Core::AndExpr.new();
+            $res.expr.push($c);
+            $c.left = self.create_and_expr($node, ++$pos);
+        }
+        else {
+            self.trace('shortcut AndExpr');
+            # Shortcut for single CastableExpr
+            $res = $c;
+        };
+        $res;
+    };
+
+    method create_castable_expr($node) {
         XQuery::Core::Literal.new(
-            value => ~$and
+            value => ~$node
         );
-    }
+    };
 
     method create_literal($node) {
         XQuery::Core::Literal.new(
