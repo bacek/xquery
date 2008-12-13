@@ -13,7 +13,7 @@ StaticType used during optimization phase.
 =end pod
 
 sub create($ast) {
-    XQuery::Core::Creator.new().create_module($ast<Module>);
+    XQuery::Core::Creator.new().process_module($ast<Module>);
 };
 
 
