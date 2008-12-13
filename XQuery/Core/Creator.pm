@@ -93,7 +93,7 @@ class XQuery::Core::Creator {
         return unless $node<ComparisonExpr>[$pos];
         self.trace('create AndExpr');
         my $res;
-        my $c = self.create_castable_expr($node<ComparisonExpr>[$pos]);
+        my $c = self.create_comparision_expr($node<ComparisonExpr>[$pos]);
         if 1 < +$node<ComparisonExpr> && $pos == 0 {
             $res = XQuery::Core::AndExpr.new();
             $res.expr.push($c);
@@ -107,7 +107,50 @@ class XQuery::Core::Creator {
         $res;
     };
 
+    # There is no 'ComparisionExpr'. It normalized to function calls.
+    # TODO Implement it
+    method create_comparision_expr($node) {
+        self.trace('create_comparision_expr');
+        self.create_range_expr($node<RangeExpr>[0]);
+    };
+
+    method create_range_expr($node) {
+        self.trace('create_range_expr');
+        self.create_additive_expr($node<AdditiveExpr>[0]);
+    };
+
+    method create_additive_expr($node) {
+        self.trace('create_additive_expr');
+        self.create_multiplicative_expr($node<MultiplicativeExpr>[0]);
+    };
+
+    method create_multiplicative_expr($node) {
+        self.trace('create_multiplicative_expr');
+        self.create_union_expr($node<UnionExpr>[0]);
+    };
+
+    method create_union_expr($node) {
+        self.trace('create_union_expr');
+        self.create_intersect_expr($node<IntersectExceptExpr>[0]);
+    };
+
+    method create_intersect_expr($node) {
+        self.trace('create_intersect_expr');
+        self.create_instanceof_expr($node<InstanceofExpr>[0]);
+    };
+
+    method create_instanceof_expr($node) {
+        self.trace('create_instanceof_expr ');
+        self.create_treat_expr($node<TreatExpr>);
+    };
+
+    method create_treat_expr($node) {
+        self.trace('create_treat_expr ');
+        self.create_castable_expr($node<CastableExpr>);
+    };
+
     method create_castable_expr($node) {
+        self.trace('create_castable_expr ');
         XQuery::Core::Literal.new(
             value => ~$node
         );
