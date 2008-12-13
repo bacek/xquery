@@ -151,6 +151,10 @@ class XQuery::Core::Creator {
 
     method create_castable_expr($node) {
         self.trace('create_castable_expr ');
+        self.create_cast_expr($node<Cast>);
+    };
+
+    method create_cast_expr($node) {
         XQuery::Core::Literal.new(
             value => ~$node
         );
