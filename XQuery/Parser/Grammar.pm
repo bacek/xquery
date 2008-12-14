@@ -196,7 +196,7 @@ grammar XQueryGrammar {
 ##[69]    	RelativePathExpr 	   ::=    	StepExpr (("/" | "//") StepExpr)*
     # LTM
     rule RelativePathExpr {
-        <StepExpr> [ [ '//' | '/' ] <StepExpr> ]*
+        <StepExpr> ( ( '//' | '/' ) <StepExpr> )*
     };
 
     # LTM
