@@ -20,13 +20,13 @@ class XQuery::Core::Creator {
     };
 
     method process_module($module) {
-        self.trace('create module');
+        self.trace('process_module');
         self.process_expr($module<MainModule><QueryBody><Expr>);
     };
 
     method process_expr($expr, $pos = 0) {
         return unless $expr<ExprSingle>[$pos];
-        self.trace('create expr');
+        self.trace('process_expr');
 
         my $expr_single = $expr<ExprSingle>[$pos];
 
@@ -37,7 +37,7 @@ class XQuery::Core::Creator {
     };
 
     method process_expr_single($ast) {
-        self.trace('create expr_single');
+        self.trace('process_expr_single');
 =begin cut
     # it doesn't work in Rakudo.
         given $ast {
@@ -73,7 +73,7 @@ class XQuery::Core::Creator {
 
     method process_or_expr($or, $pos = 0) {
         return unless $or<AndExpr>[$pos];
-        self.trace('create or_expr');
+        self.trace('process_or_expr');
         my $res;
         my $and = self.process_and_expr($or<AndExpr>[$pos]);
         if 1 < +$or<AndExpr> && $pos == 0 {
@@ -91,7 +91,7 @@ class XQuery::Core::Creator {
 
     method process_and_expr ($node, $pos = 0) {
         return unless $node<ComparisonExpr>[$pos];
-        self.trace('create AndExpr');
+        self.trace('process_and_expr');
         my $res;
         my $c = self.process_comparision_expr($node<ComparisonExpr>[$pos]);
         if 1 < +$node<ComparisonExpr> && $pos == 0 {
@@ -151,7 +151,7 @@ class XQuery::Core::Creator {
 
     method process_castable_expr($node) {
         self.trace('process_castable_expr ');
-        self.process_cast_expr($node<Cast>);
+        self.process_cast_expr($node<CastExpr>);
     };
 
     method process_cast_expr($node) {
