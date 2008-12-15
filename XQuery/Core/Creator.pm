@@ -155,9 +155,43 @@ class XQuery::Core::Creator {
     };
 
     method process_cast_expr($node) {
-        XQuery::Core::Literal.new(
-            value => ~$node
-        );
+        self.trace('process_cast_expr ');
+        self.process_unary_expr($node<UnaryExpr>);
+    };
+
+    method process_unary_expr($node) {
+        self.trace('process_unary_expr');
+        self.process_value_expr($node<ValueExpr>);
+    };
+
+    method process_value_expr($node) {
+        self.trace('process_value_expr');
+        self.process_path_expr($node<PathExpr>);
+    };
+
+    method process_path_expr($node) {
+        self.trace('process_path_expr');
+        self.process_relative_path_expr($node<RelativePathExpr>);
+    };
+
+    method process_relative_path_expr($node) {
+        self.trace('process_relative_path_expr ');
+        self.process_step_expr($node<StepExpr>);
+    };
+
+    method process_step_expr($node) {
+        self.trace('process_step_expr ');
+        self.process_filter_expr($node<FilterExpr>);
+    };
+
+    method process_filter_expr($node) {
+        self.trace('process_filter_expr ');
+        self.process_primary_expr($node<PrimaryExpr>);
+    };
+    
+    method process_primary_expr($node) {
+        self.trace('process_primary_expr ');
+        self.process_literal($node);
     };
 
     method process_literal($node) {
