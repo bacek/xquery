@@ -37,7 +37,7 @@ class XQuery::Core::Creator {
     };
 
     method process_expr_single($ast) {
-        self.trace('process_expr_single');
+        self.trace('process_expr_single ' ~$ast.WHAT);
 =begin cut
     # it doesn't work in Rakudo.
         given $ast {
@@ -191,7 +191,9 @@ class XQuery::Core::Creator {
     
     method process_primary_expr($node) {
         self.trace('process_primary_expr ');
-        self.process_literal($node);
+        #self.process_literal($node);
+        if    ($node<Literal>) { self.process_literal($node<Literal>) }
+        else                   { die "Not implemented" }
     };
 
     method process_literal($node) {
