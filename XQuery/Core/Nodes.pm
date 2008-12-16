@@ -1,4 +1,5 @@
 use v6;
+use XQuery::DynamicContext;
 
 =begin pod
 
@@ -12,6 +13,10 @@ class XQuery::Core::Node {
     method right { $.right };
     method left  { $.left };
 
+    method trace(@args) {
+        say 'core: '~@args;
+    };
+
     method dump ( $level = 0) {
         say '  ' x $level, self;
         if (self.right) {
@@ -20,6 +25,13 @@ class XQuery::Core::Node {
         if (self.left) {
             self.left.dump($level);
         }
+    };
+
+    # Temporary put evaluation of Core directly. In future we will emit some
+    # ExecutionTree, perl or bytecode.
+    method evaluate($dc) {
+        self.trace('module evaluate');
+        ...
     };
 };
 
@@ -48,6 +60,11 @@ class XQuery::Core::Node {
 #[22]    	Expr 	   ::=    	ExprSingle ("," ExprSingle)*
 class XQuery::Core::Expr is XQuery::Core::Node {
     has @.expr_single;
+    
+    method evaluate($dc) {
+        self.trace('expr evaluate');
+        
+    };
 };
 
 #[23]    	ExprSingle 	   ::=    	FLWORExpr
@@ -195,6 +212,11 @@ class XQuery::Core::Literal is XQuery::Core::Node {
     method Str {
         'Literal[' ~ $.value ~ ']';
     }
+    
+    method evaluate($dc) {
+        self.trace('Literal evaluate');
+        $.value; 
+    };
 };
 
 #[57]    	NumericLiteral 	   ::=    	IntegerLiteral | DecimalLiteral | DoubleLiteral
